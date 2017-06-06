@@ -4,6 +4,8 @@ bash scripts ii i.e. there is another one
 
 ## requirements
 
+### windows
+
 - [Git for windows](https://git-for-windows.github.io/)
   + bash
   + perl
