@@ -1,6 +1,6 @@
 #!/bin/bash
 ## markdown.sh - pl markdown wrapper
-## version 0.0.1 - initial
+## version 0.0.2 - fix @ zenkaku space
 ##################################################
 markdown() {
  test ! "${infile}" || {
@@ -16,8 +16,8 @@ convert-infile() {
 }
 #-------------------------------------------------
 convert-input() { 
-Å@echo ${input} | 
-Å@perl ${PL}/Markdown.pl
+ echo ${input} | 
+ perl ${PL}/Markdown.pl
 }
 ##################################################
 ## $1 - file name
