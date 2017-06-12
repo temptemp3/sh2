@@ -1,13 +1,45 @@
 #!/bin/bash
 ## u2.sh - update html v2
-## version 0.0.1 - initial
+## version 0.1.0 - html
 ##################################################
 set -e # exit on error
 ##################################################
 markdown() { ${SH}/markdown.sh ${@} 2>/dev/null ; }
 ##################################################
+if-directory() { { local candidate_directory ; candidate_directory="${1}" ; }
+ test -d "${candidate_directory}" || {
+  mkdir ${candidate_directory} --verbose
+ }
+}
+#-------------------------------------------------
+if-html() {
+ if-directory "html"
+}
+#-------------------------------------------------
+if-config() {
+ if-directory "config"
+}
+#-------------------------------------------------
+if-config-ignore() {
+ test -f "config/ignore" || {
+  touch config/ignore
+ }
+}
+#-------------------------------------------------
 h1() { { local text ; text="${@}" ; }
  markdown "# ${text}" 
+}
+#-------------------------------------------------
+process-navigation() {
+ echo index
+ local el
+ for el in ${navigation}
+ do
+  test ! "${el}" = "index" || {
+   continue
+  }
+  echo ${el}
+ done
 }
 #-------------------------------------------------
 get-navigation() {
@@ -16,7 +48,7 @@ get-navigation() {
   for-each-file echo 
  )
  test "${navigation}"
- echo "${navigation}" > navigation-base
+ process-navigation > navigation-base
 }
 #-------------------------------------------------
 navigation=
@@ -48,9 +80,7 @@ generate-navigation() {
 }
 #-------------------------------------------------
 get-all-files() {
- test -f "config/ignore" || {
-  touch config/ignore
- }
+ if-config-ignore
  git ls-files | 
  grep \
   --invert-match \
@@ -124,7 +154,7 @@ file-the-content() {
 #-------------------------------------------------
 file-convert-to-html() {
  echo -n "converting $( file-basename ) to html ..."
- cat > $( file-basename ).html << EOF
+ cat > html/$( file-basename ).html << EOF
 <!DOCTYPE html>
 <html>
 <head>
@@ -157,10 +187,13 @@ file-generate-link() {
  markdown "- [$( file-basename )]($( file-basename ).html)"
 }
 #-------------------------------------------------
-initiailze() {
- test -d "config" || {
-  mkdir config --verbose
- }
+initialize-directories() {
+ if-config
+ if-html 
+}
+#-------------------------------------------------
+initialize() {
+ initialize-directories
 }
 #-------------------------------------------------
 start-prompt() {
@@ -173,13 +206,14 @@ EOF
 }
 #-------------------------------------------------
 u2-list() {
+ initialize
  get-files # ${files}
  start-prompt
  generate-navigation # ${navigation}
  for-each-file convert-to-html # > *.html
 }
 #-------------------------------------------------
-u2() {
+u2() { 
  u2-list
 }
 ##################################################
