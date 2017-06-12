@@ -1,6 +1,6 @@
 # sh2
 
-bash scripts ii i.e. there is another one
+just some bash scripts
 
 ## requirements
 
