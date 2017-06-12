@@ -1,17 +1,17 @@
 #!/bin/bash
 ## sh2dot - generates dot from sh
-## version 0.0.1 - initial, import
+## version 0.0.2 - wip
 ##################################################
 . ${SH}/core.sh
-attr file_name
-attr function_def_lines
+#attr file_name
+#attr function_def_lines
 attr function_list
 attr dot_expression
 ##################################################
 get_lines() { ${SH}/get-lines.sh ${@} ; }
 print_line() { ${SH}/print-line.sh ${@} ; }
 print_lines() { ${SH}/print-lines.sh ${@} ; }
-pattern() { ${SH}/pattern.sh ${@} ; }
+#pattern() { ${SH}/pattern.sh ${@} ; }
 range() { ${SH}/range.sh ${@} ; }
 union() { ${SH}/union.sh ${@} ; }
 ##################################################
@@ -19,14 +19,14 @@ union() { ${SH}/union.sh ${@} ; }
 print_the_lines() {
  local lines
  lines=${@}
- print_lines $( get_file_name ) ${lines}
+ print_lines ${infile} ${lines}
 }
 #-------------------------------------------------
 # $1- pattern
 get_the_lines() {
  local pattern
  pattern=${@}
- get_lines $( get_file_name ) ${pattern}
+ get_lines ${infile} ${pattern}
 }
 #-------------------------------------------------
 # $1- function def line
@@ -40,7 +40,7 @@ get_line_function_name() {
 print_the_line() {
  local line_no
  line_no=${1}
- print_line $( get_file_name ) ${line_no}
+ print_line ${infile} ${line_no}
 } 
 #+++++++++++++++++++++++++++++++++++++++++++++++++
 print_line_function_name() {
@@ -49,23 +49,29 @@ print_line_function_name() {
  get_line_function_name $( print_the_line ${line_no} )
 }
 #-------------------------------------------------
-pattern_sh_func_def() {
- pattern sh func def
-}
-#+++++++++++++++++++++++++++++++++++++++++++++++++
-get_sh_func_def_lines() {
- get_the_lines "$( pattern_sh_func_def )" 
-}
-#+++++++++++++++++++++++++++++++++++++++++++++++++
 set_the_function_list_loop() {
- for line_no in $( get_function_def_lines )
+ for line_no in ${function_def_lines}
  do
   get_line_function_name $( print_the_line ${line_no} )
  done
 }
-#*************************************************
-set_the_function_def_lines() {
- set_function_def_lines $( get_sh_func_def_lines )
+#-------------------------------------------------
+#pattern_sh_func_def() {
+# pattern sh func def
+#}
+#-------------------------------------------------
+get_sh_func_def_lines() {
+ local pattern_sh_func_def_line
+ pattern_sh_func_def_line='^[a-z_-]*[(][)]\s*{.*$'
+ get_the_lines "${pattern_sh_func_def_line}"
+}
+#-------------------------------------------------
+function_def_lines=
+set-function-def-lines() {
+ function_def_lines=$(
+  get_sh_func_def_lines 
+ )
+ test "${function_def_lines}" 
 }
 #*************************************************
 set_the_function_list() {
@@ -73,7 +79,7 @@ set_the_function_list() {
 }
 #+++++++++++++++++++++++++++++++++++++++++++++++++
 get_file_name_entry() {
- basename $( get_file_name | sed -e 's/[-]/_/g' ) .sh
+ basename $( echo ${infile} | sed -e 's/[-]/_/g' ) .sh
 }
 #+++++++++++++++++++++++++++++++++++++++++++++++++
 dot_all_functions() {
@@ -94,7 +100,7 @@ dot_construct() {
  cat << EOF
 digraph G {
 graph [layout=dot rankdir=LR] ;
-label = "$( get_file_name )" ;
+label = "${infile}" ;
 $( dot_all_functions )
 $( get_dot_expression )
 }
@@ -165,7 +171,7 @@ set_the_dot_expression() {
  local pair_b
  local lines
  local line
- for pair in $( mapcar_list pair $( get_function_def_lines ) )
+ for pair in $( mapcar_list pair ${function_def_lines}  )
  do
   #echoe ${pair}
   destucted_pair=$( destruct_pair ${pair} ) 
@@ -203,24 +209,24 @@ set_the_dot_expression() {
  done
 }
 #-------------------------------------------------
-_list() {
- set_the_function_def_lines
+sh2dot-list() {
+ set-function-def-lines
  set_the_function_list
  set_the_dot_expression
  dot
 }
-##################################################
-sh2dot() {
- _list
+#-------------------------------------------------
+sh2dot() { 
+ sh2dot-list
 }
 ##################################################
 ## $1 - file name
 if [ ${#} -eq 1 -a -f ${1} ] 
 then
- set_file_name ${1}
- sh2dot
-##################################################
+ infile="${1}"
 else
  exit 1 # wrong args
 fi
+##################################################
+sh2dot
 ##################################################
