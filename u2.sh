@@ -1,11 +1,16 @@
 #!/bin/bash
 ## u2.sh - update html v2
-## version 0.1.0 - html
+## version 0.1.1 - charsets
 ##################################################
 set -e # exit on error
 ##################################################
 markdown() { ${SH}/markdown.sh ${@} 2>/dev/null ; }
+file_mime_encoding() { ${SH}/file-mime-encoding.sh ${@} ; }
 ##################################################
+_cleanup() {
+ rm navigation* --verbose
+}
+#-------------------------------------------------
 if-directory() { { local candidate_directory ; candidate_directory="${1}" ; }
  test -d "${candidate_directory}" || {
   mkdir ${candidate_directory} --verbose
@@ -101,7 +106,7 @@ files=
 get-files() { 
  files=$(
   cat << EOF
-index
+docs/index
 $( get-index-files )
 $( get-untracked-files )
 EOF
@@ -152,12 +157,31 @@ file-the-content() {
  markdown ${file}
 }
 #-------------------------------------------------
+file-charsets() { { local charset ; charset="${1}" ; }
+ echo ${file} ${charset} 1>&2
+ case ${charset} in
+  SHIFT_JIS)	echo Shift_JIS ;;
+  utf-8) 	echo UTF-8 ;;
+  us-ascii) 	echo US-ASCII ;;
+  *)		echo ISO-8859-1 ;;
+ esac 
+}
+#-------------------------------------------------
+file-charset() {
+ local charset
+ charset=$( file-charsets $( file_mime_encoding ${file} ) )
+ cat << EOF
+<meta charset="${charset}">
+EOF
+}
+#-------------------------------------------------
 file-convert-to-html() {
  echo -n "converting $( file-basename ) to html ..."
  cat > html/$( file-basename ).html << EOF
 <!DOCTYPE html>
 <html>
 <head>
+$( file-charset )
 <title>$( file-basename )</title>
 <style>
 div#header ul li {
@@ -211,6 +235,7 @@ u2-list() {
  start-prompt
  generate-navigation # ${navigation}
  for-each-file convert-to-html # > *.html
+ _cleanup
 }
 #-------------------------------------------------
 u2() { 
