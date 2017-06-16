@@ -1,6 +1,6 @@
 #!/bin/bash
 ## u2.sh - update html v2
-## version 0.1.2 - get-all-files-show-name-only stub
+## version 0.2.0 - get-files-fallback
 ##################################################
 set -e # exit on error
 ##################################################
@@ -84,22 +84,107 @@ generate-navigation() {
  done
 }
 #-------------------------------------------------
-get-all-files-show-name-only() {
- true
+car() {
+ echo ${1}
+}
+#-------------------------------------------------
+git-show-name-only-lines() { { local depth ; depth="${1}" ; }
+ local lines
+ lines=$( 
+  git-show-name-only ${depth} |
+  tac |
+  gawk '
+   /^$/{
+    print NR
+   }
+  '
+ )
+ test "${lines}" && {
+  car ${lines}
+ }
+}
+#-------------------------------------------------
+git-show-name-only-if-depth() { { local depth ; depth="${1}" ; }
+ case ${depth} in
+  0) { 
+   echo "HEAD" 
+  } ;;
+  1*|2*|3*|4*|5*|6*|7*|8*|9*) { 
+   echo "HEAD~${depth}" 
+  } ;;
+  *) false || {
+   false # exit on invalid depth
+  } ;;
+ esac
+}
+#-------------------------------------------------
+git-ls-files() {
+ git ls-files
+}
+#-------------------------------------------------
+git-show-name-only() { { local depth ; depth="${1}" ; }
+ git show --name-only $( git-show-name-only-if-depth ${depth} )
+}
+#-------------------------------------------------
+get-all-files-show-name-only-single() { { local depth ; depth="${1}" ; }
+ git-show-name-only ${depth} | 
+ tac | 
+ head -n $( git-show-name-only-lines ${depth} )
+}
+#-------------------------------------------------
+get-all-files-show-name-only-all() {
+ for step in {0..5} # read from config later 
+ do
+  get-all-files-show-name-only-single ${step}
+ done 
+}
+#-------------------------------------------------
+get-all-files-show-name-only() { 
+ echo $( get-all-files-show-name-only-all ) | 
+ sed \
+  -e 's/\s/\n/g' |
+ gawk ' # rank files by number of times updated 
+  BEGIN {
+   HASH[0]=0
+  }
+  // {
+   if(!HASH[$(0)]) {
+    HASH[++HASH[0]]=$(0)
+    HASH[$(0)]=0
+   }
+   HASH[$(0)]++
+  }
+ END {
+  for(i=1;i<HASH[0];i++) { 
+   print HASH[HASH[i]] " " HASH[i]
+  }
+ } 
+ ' | 
+ sort --numeric-sort --reverse |
+ gawk ' # throw away files not updated after creation
+  // {
+   if($(1)>1) { # file updated more than once
+    print $(2)
+   }
+  }
+ ' |
+ uniq |
+ head -n 50 # read from config later
 }
 #-------------------------------------------------
 get-all-files-git-ls-files() {
  if-config-ignore
- git ls-files | 
+ git-ls-files | 
  grep \
   --invert-match \
   --file=config/ignore
 }
 #-------------------------------------------------
-get-all-files() {
- 
+get-all-files() { 
+ # get get-all-files behavior from config later
+ get-all-files-show-name-only || # default
  get-all-files-git-ls-files ||
- false # throw some error
+ false # exit on git-ls-files failure
 }
 #-------------------------------------------------
 get-untracked-files() {
@@ -113,28 +198,49 @@ get-index-files() {
 }
 #-------------------------------------------------
 files=
-get-files() { 
+get-files-default-behavior() {
  files=$(
   cat << EOF
 docs/index
 $( get-index-files )
 $( get-untracked-files )
 EOF
-)
-
+ )
+ test "${files}"
+}
+#-------------------------------------------------
+get-files-filter() {
  #################################################
- ## prevent duplicates of index ##################
+ ## prevent duplicates of index                  #
+ ## i.e. when index is modified or created       #
  files=$(
-  echo ${files} | sed -e 's/\s/\n/g' | uniq
+  echo ${files} | 
+  sed -e 's/\s/\n/g' | 
+  sort | # (1) uniq depends on sorted lines
+  uniq
  )
  #################################################
-
+}
+#-------------------------------------------------
+get-files-fallback() {
+ # files fallback
+ # case ${files} = docs/index
  test ! $( echo ${files} | wc --words ) -eq 1 || {
   files=$(
    get-all-files
   )
  }
+}
+#-------------------------------------------------
+get-files-output() {
  echo "${files}"
+}
+#-------------------------------------------------
+get-files() { 
+ get-files-default-behavior
+ get-files-filter
+ get-files-fallback
+ get-files-output
 }
 #-------------------------------------------------
 for-each-file() { { local function ; function="${1}" ; }
