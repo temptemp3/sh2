@@ -1,6 +1,6 @@
 #!/bin/bash
 ## u2.sh - update html v2
-## version 0.1.1 - charsets
+## version 0.1.2 - get-all-files-show-name-only stub
 ##################################################
 set -e # exit on error
 ##################################################
@@ -84,12 +84,22 @@ generate-navigation() {
  done
 }
 #-------------------------------------------------
-get-all-files() {
+get-all-files-show-name-only() {
+ true
+}
+#-------------------------------------------------
+get-all-files-git-ls-files() {
  if-config-ignore
  git ls-files | 
  grep \
   --invert-match \
   --file=config/ignore
+}
+#-------------------------------------------------
+get-all-files() {
+ 
+ get-all-files-git-ls-files ||
+ false # throw some error
 }
 #-------------------------------------------------
 get-untracked-files() {
