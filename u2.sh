@@ -1,6 +1,8 @@
 #!/bin/bash
 ## u2.sh - update html v2
 ## version 0.2.0 - get-files-fallback
+## =to do=
+## - strip html comments
 ##################################################
 set -e # exit on error
 ##################################################
