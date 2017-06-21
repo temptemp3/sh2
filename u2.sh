@@ -3,6 +3,7 @@
 ## version 0.2.0 - get-files-fallback
 ## =to do=
 ## - strip html comments
+## - disable markdown underbar for em instead forcing use of single asterisk
 ##################################################
 set -e # exit on error
 ##################################################
