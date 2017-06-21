@@ -33,6 +33,7 @@ ${SH}/command.sh args
 
 ## programs
 
-- diff-path - may be useful when performing post http to https migration optimizations or resolving mixed content in https response
+- diff-path
+  + may be useful when performing post http to https migration optimizations or resolving mixed content in https response
 
 ---
