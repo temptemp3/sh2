@@ -2,9 +2,13 @@
 ## create-stub2
 ## - create program stub
 ## =standalone=
-## version 0.0.1 - initial
+## version 0.1.0 - program entry, if-location
 ##################################################
-set -e # exit on error
+set -e 			# exit on error
+shopt -s expand_aliases	# enable alias expansion
+##################################################
+alias if-location="test ! \${location}"
+alias if-programs="test ! \${programs}"
 ##################################################
 create-stub-generate-stub-head() { 
  cat << EOF
@@ -16,10 +20,20 @@ exit 0
 EOF
 }
 #-------------------------------------------------
-create-stub-generate-stub-import-line() {
+create-stub-generate-stub-imports-head() {
  cat << EOF
-${candidate_program}() { \${location}/${candidate_program}.sh \${@} ; }
+##################################################\
+$( create-stub-generate-stub-imports-head-location-line )
 EOF
+} 
+#-------------------------------------------------
+create-stub-generate-stub-imports-head-location-line() {
+ if-location || {
+  cat << EOF
+
+location=${location}
+EOF
+ }
 }
 #-------------------------------------------------
 for-each-create-stub-generate-stub-import-line() {
@@ -30,16 +44,20 @@ for-each-create-stub-generate-stub-import-line() {
  done
 } 
 #-------------------------------------------------
-create-stub-generate-stub-imports-head() {
+create-stub-generate-stub-import-line() {
  cat << EOF
-##################################################
-location="${location}"
+${candidate_program}() { \
+$( if-location || echo "\${location}/" )\
+${candidate_program}.sh \${@} \
+; }
 EOF
-} 
+}
 #-------------------------------------------------
 create-stub-generate-stub-imports() {
- create-stub-generate-stub-imports-head
- for-each-create-stub-generate-stub-import-line
+ if-programs || {
+  create-stub-generate-stub-imports-head
+  for-each-create-stub-generate-stub-import-line
+ }
 }
 #-------------------------------------------------
 create-stub-generate-stub-entry() {
@@ -106,6 +124,11 @@ then
  location="${1}"
  program="${2}"
  programs="${@:3}"
+elif [ ${#} -eq 1 ]
+then
+ location=
+ program="${1}"
+ programs=
 else
  create-stub-help
  exit 1 # wrong args
