@@ -39,6 +39,7 @@ ${SH}/command.sh args
 - create-stub2 - create program stub
 
 ```
+${SH}/create-stub2.sh a b {c..z}
 #!/bin/bash
 ## b
 ## =stub=
