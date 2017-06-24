@@ -1,6 +1,9 @@
 #!/bin/bash
-## markdown.sh - pl markdown wrapper
+## markdown
+## - pl markdown wrapper
 ## version 0.0.2 - fix @ zenkaku space
+## =to do=
+## - check for markdown command  
 ##################################################
 markdown() {
  test ! "${infile}" || {
