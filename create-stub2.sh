@@ -1,6 +1,7 @@
 #!/bin/bash
 ## create-stub2
 ## - create program stub
+## =standalone=
 ## version 0.0.1 - initial
 ##################################################
 set -e # exit on error
