@@ -33,7 +33,39 @@ ${SH}/command.sh args
 
 ## programs
 
-- diff-path
+- diff-path - compare request protocol varied response
   + may be useful when performing post http to https migration optimizations or resolving mixed content in https response
 
+- create-stub2 - create program stub
+
+```
+#!/bin/bash
+## b
+## =stub=
+## version 0.0.0 - stub
+exit 0
+##################################################
+location="a"
+c() { ${location}/c.sh ${@} ; }
+d() { ${location}/d.sh ${@} ; }
+...
+y() { ${location}/y.sh ${@} ; }
+z() { ${location}/z.sh ${@} ; }
+##################################################
+b() {
+ true
+}
+##################################################
+if [ ${#} -eq 0 ]
+then
+ true
+else
+ exit 1 # wrong args
+fi
+##################################################
+b
+##################################################
+
+```
+  
 ---
