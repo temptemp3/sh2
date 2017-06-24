@@ -33,6 +33,8 @@ ${SH}/command.sh args
 
 ## programs
 
+- markdown - somehow markdown
+
 - diff-path - compare request protocol varied response
   + may be useful when performing post http to https migration optimizations or resolving mixed content in https response
 
