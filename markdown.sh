@@ -1,9 +1,15 @@
 #!/bin/bash
-## markdown
+## markdown 
 ## - pl markdown wrapper
 ## version 0.0.2 - fix @ zenkaku space
 ## =to do=
-## - check for markdown command  
+## - check for markdown command, mc
+##  + use mc, primary
+## - check for perl
+##  + install Markdown.pl as mc
+##     + use mc, secondary
+## - allow override
+##  + use mc provided with interface, optional
 ##################################################
 markdown() {
  test ! "${infile}" || {
@@ -15,7 +21,7 @@ markdown() {
 }
 #-------------------------------------------------
 convert-infile() {
- perl ${PL}/Markdown.pl ${infile} 
+ perl ${PL}/Markdown.pl ${infile} # use 
 }
 #-------------------------------------------------
 convert-input() { 
