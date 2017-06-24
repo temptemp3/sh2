@@ -1,14 +1,15 @@
 #!/bin/bash
 ## u2.sh - update html v2
-## version 0.2.0 - get-files-fallback
+## version 0.2.1 - location sh to sh2
 ## =to do=
 ## - strip html comments
 ## - disable markdown underbar for em instead forcing use of single asterisk
 ##################################################
 set -e # exit on error
 ##################################################
-markdown() { ${SH}/markdown.sh ${@} 2>/dev/null ; }
-file_mime_encoding() { ${SH}/file-mime-encoding.sh ${@} ; }
+location="${SH2}"
+markdown() { ${location}/markdown.sh ${@} 2>/dev/null ; }
+file_mime_encoding() { ${location}/file-mime-encoding.sh ${@} ; }
 ##################################################
 _cleanup() {
  rm navigation* --verbose
