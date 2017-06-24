@@ -41,7 +41,11 @@ ${SH}/command.sh args
 - create-stub2 - create program stub
 
 ```
-${SH}/create-stub2.sh a b {c..z}
+# examples
+
+## example i: create stub for program b with location a imports c though z
+
+${SH}/create-stub2.sh a b {c..z} 
 #!/bin/bash
 ## b
 ## =stub=
@@ -69,6 +73,28 @@ fi
 b
 ##################################################
 
+## example ii: create stub for standalone program foo and write to file foo.sh
+
+${SH}/create-stub.sh foo | tee ${SH}/foo.sh
+#!/bin/bash
+## foo
+## =stub=
+## version 0.0.0 - stub
+exit 0
+##################################################
+foo() {
+ true
+}
+##################################################
+if [ ${#} -eq 0 ]
+then
+ true
+else
+ exit 1 # wrong args
+fi
+##################################################
+foo
+##################################################
 ```
   
 ---
