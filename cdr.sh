@@ -2,19 +2,18 @@
 ## cdr
 ## - the rest
 ## =standalone=
-## version 0.0.1 - initial
+## version 1.0.0 - nil successful exit status
 ##################################################
 cdr() {
- echo ${rest}
+ echo ${cdr}
 }
 ##################################################
 if [ ${#} -ge 2 ] 
 then
- rest=${@:2}
+ cdr=${@:2}
 elif [ ${#} -eq 1 ] 
 then
- echo nil
- exit 2 # nil
+ cdr="nil"
 else
  exit 1 # wrong args
 fi
