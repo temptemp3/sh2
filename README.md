@@ -33,12 +33,15 @@ ${SH}/command.sh args
 
 ## programs
 
+- cdr - lisp like cdr
+
+- [create-stub2](#create-stub) - create program stub
+
+- diff-path - compare request protocol varied response (may be useful when performing post http to https migration optimizations or resolving mixed content in https response)
+
 - markdown - somehow markdown
 
-- diff-path - compare request protocol varied response
-  + may be useful when performing post http to https migration optimizations or resolving mixed content in https response
-
-- create-stub2 - create program stub
+### create-stub
 
 ```
 # examples
