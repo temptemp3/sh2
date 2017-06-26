@@ -4,6 +4,7 @@
 ## =to do=
 ## - strip html comments
 ## - disable markdown underbar for em instead forcing use of single asterisk
+## - git show with diff filter, --diff-filter=AMd
 ##################################################
 set -e # exit on error
 ##################################################
