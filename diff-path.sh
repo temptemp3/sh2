@@ -1,13 +1,22 @@
 #!/bin/bash
 ## diff-http-https-path.sh
 ## - diff protocoal path request response
-## version 0.0.1 - initial, http https diff
+## version 0.1.0 - if-domain-path
 ##################################################
 set -e # exit on error
 ##################################################
+if-domain-path() {
+ test "${domain}" && {
+  echo ${domain}${path}
+ true
+ } || {
+  echo ${path}
+ }
+}
+#-------------------------------------------------
 curl-url-payload() { 
  local url
- url=${protocol}://${path}
+ url=${protocol}://$( if-domain-path )
  curl -ks ${url}
 }
 #-------------------------------------------------
@@ -47,7 +56,11 @@ main() {
  _cleanup
 }
 ##################################################
-if [ ${#} -eq 1 ]
+if [ ${#} -eq 2 ]
+then
+ domain="${1}"
+ path="${2}"
+elif [ ${#} -eq 1 ]
 then
  path="${1}"
 else
