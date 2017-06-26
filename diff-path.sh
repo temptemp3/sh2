@@ -1,7 +1,7 @@
 #!/bin/bash
 ## diff-http-https-path.sh
 ## - diff protocoal path request response
-## version 0.1.0 - if-domain-path
+## version 0.2.0 - no path behavior loop
 ##################################################
 set -e # exit on error
 ##################################################
@@ -43,7 +43,7 @@ _cleanup() {
  }
 }
 #-------------------------------------------------
-main() { 
+diff-path-single() {
  echo testing
  generate-temp # ${temp}
  for protocol in http https 
@@ -54,6 +54,19 @@ main() {
  wait 
  diff ${temp}-* || true
  _cleanup
+
+}
+#-------------------------------------------------
+diff-path() { 
+ test ! "${path}" || {
+  diff-path-single
+  return
+ }
+ while [ ! ]
+ do
+  read path
+  diff-path-single
+ done
 }
 ##################################################
 if [ ${#} -eq 2 ]
@@ -63,9 +76,12 @@ then
 elif [ ${#} -eq 1 ]
 then
  path="${1}"
+elif [ ${#} -eq 0 ]
+then
+ path=""
 else
  exit 1 # wrong args
 fi
 ##################################################
-main
+diff-path
 ##################################################
