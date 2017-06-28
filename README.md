@@ -33,6 +33,8 @@ ${SH}/command.sh args
 
 ## programs
 
+- u2 - static site generator
+
 - cdr - lisp like cdr
 
 - [create-stub2](#create-stub) - create program stub
