@@ -1,44 +1,49 @@
 #!/bin/bash
-## range 
-## - returns range
-## version 0.0.1 - inital
-##############################################
-. ${SH}/attr.sh
-attr start
-attr length
-validation() {
- test ! $( get_start ) -le 0 	|| exit 111
- test ! $( get_length ) -le 0	|| exit 112
+## range
+## - returns range of numbers
+## version 0.1.1 - test-range lower bound update ge zero
+#####################################################################################
+. error.sh	# error hangling
+error "true"	# show errors
+#####################################################################################
+eval-range() {
+ eval echo {${range_start}..${range_end}..${range_incr}}
 }
-##############################################
-range_end() {
- echo $(( $( get_start ) + $( get_length ) - 1 ))
+#------------------------------------------------------------------------------------
+test-range() {
+ test ${range_start} -ge 0 -a ${range_end} -ge ${range_start} || {
+  error "out of range" "${BASHFUNC}" "${LINENO}"
+  false
+ }
 }
-##############################################
-range_string() {
- echo {$( get_start )..$( range_end )}
+#------------------------------------------------------------------------------------
+range-list() {
+ test-range
+ eval-range
 }
-##############################################
-range() { 
- eval echo $( range_string )
+#------------------------------------------------------------------------------------
+range() {
+ range-list
 }
-##############################################
-## $1 - start
-## $2 - length
-##############################################
-if [ ${#} -eq 2 ]
+#####################################################################################
+if [ ${#} -eq 3 ]
 then
- set_start ${1} &&
- set_length ${2} &&
- validation &&
- range &&
- true
-##############################################
-elif [ ${#} -eq 1 ]
+ range_start=${1}
+ range_end=${2}
+ range_incr=${3}
+elif [ ${#} -eq 2 ]
 then
- "${0}" "1" "${1}"
-##############################################
+ range_start=${1}
+ range_end=${2}
+ range_incr=1
+elif [ ${#} -eq 1 ] 
+then
+ range_start=1
+ range_end=${1}
+ range_incr=1
 else
  exit 1 # wrong args
 fi
-##############################################
+#####################################################################################
+range
+#####################################################################################

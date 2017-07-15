@@ -1,17 +1,18 @@
 #!/bin/bash
-## attr - attribute class
-## version 0.0.1 - initial, import
+## attr
+## version: 1.0.1 - attribute name
 ##################################################
 attr() {
 ##################################################
-temp() {
- echo attr-$( date +%s )-${RANDOM}
-}
+local attribute_name
 ##################################################
+temp() {
+ echo attr-${attribute_name}-$( date +%s )-${RANDOM}
+}
+#-------------------------------------------------
 main() {
- local temp
- temp=$( temp )
- cat > ${temp} << EOF
+ _() {
+  cat > ${2} << EOF
 set_${1}() {
  test ! "\${*}" = "" || { 
   echo error: empty set_ on ${1} 1>&2
@@ -21,17 +22,19 @@ set_${1}() {
 } 
 get_${1}(){ echo \${${1}} ; }
 EOF
- . ${temp}
- rm ${temp} --force
+  . ${2}
+  rm ${2} --force #--verbose
+ } ; _ "${attribute_name}" "$( temp )"
 }
 ##################################################
 ## $1 - attribute name
 ##################################################
 if [ ${#} -eq 1 ] 
 then
- main ${@}
+ attribute_name=${1}
+ main
 else
  exit 1 # wrong args
 fi
-##################################################
 }
+##################################################
