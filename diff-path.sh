@@ -1,7 +1,7 @@
 #!/bin/bash
 ## diff-http-https-path.sh
 ## - diff protocoal path request response
-## version 0.2.0 - no path behavior loop
+## version 0.2.1 - wip curl ua-device iphone
 ##################################################
 set -e # exit on error
 ##################################################
@@ -17,7 +17,7 @@ if-domain-path() {
 curl-url-payload() { 
  local url
  url=${protocol}://$( if-domain-path )
- curl -ks ${url}
+ curl -ks ${url} -A "iPhone"
 }
 #-------------------------------------------------
 curl-url-validate-protocol() {

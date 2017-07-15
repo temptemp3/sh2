@@ -1,6 +1,6 @@
 #!/bin/bash
 ## u2.sh - update html v2
-## version 0.2.2 - revert to old markdown location
+## version 0.2.3 - wip
 ## =to do=
 ## - strip html comments
 ## - disable markdown underbar for em instead forcing use of single asterisk
@@ -36,8 +36,14 @@ if-config-ignore() {
  }
 }
 #-------------------------------------------------
+deslugify() { { local text ; text="${@}" ; }
+ echo ${text} |
+ sed \
+  -e 's/[-_]\+/ /g'
+}
+#-------------------------------------------------
 h1() { { local text ; text="${@}" ; }
- markdown "# ${text}" 
+ markdown "# $( deslugify ${text} )" 
 }
 #-------------------------------------------------
 process-navigation() {
@@ -128,7 +134,8 @@ git-ls-files() {
 }
 #-------------------------------------------------
 git-show-name-only() { { local depth ; depth="${1}" ; }
- git show --name-only $( git-show-name-only-if-depth ${depth} )
+ git show --name-only $( git-show-name-only-if-depth ${depth} ) |
+ grep -v -e 'html'
 }
 #-------------------------------------------------
 get-all-files-show-name-only-single() { { local depth ; depth="${1}" ; }
@@ -195,11 +202,21 @@ get-all-files() {
 get-untracked-files() {
  git status --short |
  grep -e '^[?]' |
- gawk '{print $(2)}'
+ gawk '{print $(2)}' |
+ grep \
+  -e 'docs' |
+ grep -v \
+  -e 'html' \
+  -e '\/[.]'
 }
 #-------------------------------------------------
 get-index-files() {
- git ls-files --modified
+ git ls-files --modified |
+ grep \
+  -e 'docs' |
+ grep -v \
+  -e 'html' \
+  -e '\/[.]'
 }
 #-------------------------------------------------
 files=
@@ -296,6 +313,21 @@ file-charset() {
 EOF
 }
 #-------------------------------------------------
+if-global-meta() {
+ test ! -d "meta"
+}
+#-------------------------------------------------
+get-global-meta() {
+ local meta_key
+ local meta_value
+ for meta_key in $( find meta -type f -name meta-\* )
+ do
+  echo ${meta_key} 1>&2
+  meta_value=$( cat ${meta_key} )
+  echo ${meta_value}
+ done
+}
+#-------------------------------------------------
 file-convert-to-html() {
  echo -n "converting $( file-basename ) to html ..."
  cat > html/$( file-basename ).html << EOF
@@ -303,9 +335,24 @@ file-convert-to-html() {
 <html>
 <head>
 $( file-charset )
+$( if-global-meta || get-global-meta )
 <title>$( file-basename )</title>
 <style>
-div#header ul li {
+h4 {
+ margin-left: 16px;
+}
+body { 
+  font-size: 16px; /* base font size */
+  line-height: 1.2em ;
+ 
+}
+.small {
+  font-size: 12px; /* 75% of the baseline */
+}
+.large {
+  font-size: 20px; /* 125% of the baseline */
+}
+div#header ul li { /* header navigation */
  display: inline ;
 }
 </style>
