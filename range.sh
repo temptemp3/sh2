@@ -1,9 +1,9 @@
 #!/bin/bash
 ## range
 ## - returns range of numbers
-## version 0.1.1 - test-range lower bound update ge zero
+## version 0.1.2 - submodule import fix
 #####################################################################################
-. error.sh	# error hangling
+. sh2/error.sh	# error hangling
 error "true"	# show errors
 #####################################################################################
 eval-range() {
