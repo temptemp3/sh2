@@ -12,6 +12,10 @@ location="${SH2}"
 markdown() { ${SH}/markdown.sh ${@} 2>/dev/null ; }
 file_mime_encoding() { ${location}/file-mime-encoding.sh ${@} ; }
 ##################################################
+cdr() {
+ echo ${@:2}
+}
+#-------------------------------------------------
 _cleanup() {
  rm navigation* --verbose
 }
@@ -26,8 +30,41 @@ if-html() {
  if-directory "html"
 }
 #-------------------------------------------------
+read-variable() { { local file ; file="${1}" ; local variable_name ; variable_name="${2}" ; }
+ local candidate_variable_value
+ test ! -f "${file}" || {
+  candidate_variable_value=$(
+   cdr  $( cat ${file} | grep --line-number -e "^${variable_name}\s" )
+  )
+ }
+ test ! "${candidate_variable_value}" || {
+  echo "${candidate_variable_value}" 
+ }
+}
+#-------------------------------------------------
+read-get-file-variable() { { local candidate_variable_name ; candidate_variable_name="${1}" ; }
+ case ${candidate_variable_name} in
+  mode) read-variable "config/get-file" "${candidate_variable_name}" ;;
+  *) true ;;
+ esac
+}
+#-------------------------------------------------
+get_file_mode=
+read-get-file-mode() {
+ get_file_mode=$(
+  read-get-file-variable "mode"
+ )
+}
+#-------------------------------------------------
+if-get-file-config() { set -v -x
+ read-get-file-mode
+ echo ${get_file_mode}
+ read
+}
+#-------------------------------------------------
 if-config() {
  if-directory "config"
+ if-get-file-config
 }
 #-------------------------------------------------
 if-config-ignore() {
@@ -256,6 +293,12 @@ get-files-fallback() {
 #-------------------------------------------------
 get-files-output() {
  echo "${files}"
+}
+#-------------------------------------------------
+get-files-override() {
+ case ${get_files_mode} in
+  *) true ;;
+ esac
 }
 #-------------------------------------------------
 get-files() { 
