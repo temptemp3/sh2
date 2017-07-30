@@ -1,6 +1,6 @@
 #!/bin/bash
 ## u2.sh - update html v2
-## version 0.2.4 - wip, sh2-u2 themes wip
+## version 0.2.4 - wip, u2-prompt, sh2-u2 themes wip
 ## =to do=
 ## - strip html comments
 ## - disable markdown underbar for em instead forcing use of single asterisk
@@ -489,7 +489,13 @@ u2-list() {
  _cleanup
 }
 #-------------------------------------------------
+u2-prompt() {
+ echo press any key to continue
+ read
+}
+#-------------------------------------------------
 u2() { 
+ u2-prompt
  u2-list
 }
 ##################################################
