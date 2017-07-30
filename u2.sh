@@ -1,10 +1,20 @@
 #!/bin/bash
 ## u2.sh - update html v2
-## version 0.2.4 - wip, u2-prmpt
+## version 0.2.4 - wip, u2-prompt, sh2-u2 themes wip
 ## =to do=
 ## - strip html comments
 ## - disable markdown underbar for em instead forcing use of single asterisk
 ## - git show with diff filter, --diff-filter=AMd
+##################################################
+## get bloginfo
+set -v -x
+rm bloginfo
+touch bloginfo
+for info in $( find config -type f -name bloginfo-\* | grep -v -e '~' )
+do
+ echo $( basename ${info} ) $( cat ${info} ) | tee -a bloginfo
+done
+set +v +x
 ##################################################
 set -e # exit on error
 ##################################################
@@ -34,16 +44,6 @@ if-config-ignore() {
  test -f "config/ignore" || {
   touch config/ignore
  }
-}
-#-------------------------------------------------
-deslugify() { { local text ; text="${@}" ; }
- echo ${text} |
- sed \
-  -e 's/[-_]\+/ /g'
-}
-#-------------------------------------------------
-h1() { { local text ; text="${@}" ; }
- markdown "# $( deslugify ${text} )" 
 }
 #-------------------------------------------------
 process-navigation() {
@@ -254,20 +254,70 @@ get-files-fallback() {
  }
 }
 #-------------------------------------------------
-get-files-output() {
- echo "${files}"
+get-files-output() { return ; 
+ local file
+ files=$(
+  for file in ${files}
+  do
+   echo ${file}
+   continue
+   # ignore hidden
+   cat ${file} | grep -e 'visibility:hidden' &>/dev/null && {
+    #----------------------------------------------
+    # on hidden doc
+    #local candidate_hidden_doc_html
+    #candidate_hidden_doc_html="html/$( basename ${file} ).html" 
+    #test ! -f "${candidate_hidden_doc_html}" || {
+    # rm ${candidate_hidden_doc_html} --verbose 1>&2
+    # file-hidden-html > ${candidate_hidden_doc_html}
+    #}
+    #----------------------------------------------
+   true 
+   } || {
+    echo ${file}
+   }
+  done
+ )
 }
 #-------------------------------------------------
-get-files() { 
+files_hidden=
+get-files-hidden() { 
+ files_hidden=$( 
+  local file
+  for file in $( git ls-files | grep -e '^docs' )
+  do
+   test ! -f "${file}" || {
+    cat ${file} | grep -e 'visibility:hidden' &>/dev/null && { true ; 
+     echo ${file}
+    true
+    } || { 
+     true # not hidden file
+    }
+   }
+  done
+ )
+ echo files_hidden: ${files_hidden}
+}
+#-------------------------------------------------
+get-files() { set -v -x
  get-files-default-behavior
  get-files-filter
- get-files-fallback
+ #get-files-fallback
  get-files-output
+ echo files: ${files}
+ set +v +x
 }
 #-------------------------------------------------
-for-each-file() { { local function ; function="${1}" ; }
+which-files() { { local files_name ; files_name="${1}" ; }
+ case ${files_name} in
+  hidden) echo ${files_hidden} ;;
+  *) echo ${files} ;;
+ esac
+}
+#-------------------------------------------------
+for-each-file() { { local function ; function="${1}" ; local files_name ; files_name="${2}" ; }
  local file
- for file in ${files}
+ for file in $( which-files ${files_name} )
  do
   file-${function} ${file} &
  done
@@ -328,14 +378,28 @@ get-global-meta() {
  done
 }
 #-------------------------------------------------
-file-convert-to-html() {
- echo -n "converting $( file-basename ) to html ..."
+file-error-404() {
  cat > html/$( file-basename ).html << EOF
+<!DOCTYPE html>
+<html>
+<head>
+<title>Page not found</title>
+</head>
+<body>
+Page not found
+</body>
+</html>
+EOF
+}
+#-------------------------------------------------
+file-convert-to-html-fallback() {
+ cat << EOF
 <!DOCTYPE html>
 <html>
 <head>
 $( file-charset )
 $( if-global-meta || get-global-meta )
+<link rel="stylesheet" href="css/w3.css">
 <title>$( file-basename )</title>
 <style>
 h4 {
@@ -344,7 +408,6 @@ h4 {
 body { 
   font-size: 16px; /* base font size */
   line-height: 1.2em ;
- 
 }
 .small {
   font-size: 12px; /* 75% of the baseline */
@@ -369,6 +432,18 @@ ${navigation}
 </body>
 </html>
 EOF
+}
+#-------------------------------------------------
+file-convert-to-html() {
+ echo -n "converting $( file-basename ) to html ..." 1>&2
+ theme="default"
+ test ! -f "theme/${theme}/doc-html.sh" && {
+  file-convert-to-html-fallback > html/$( file-basename ).html 
+ true 
+ } || {
+  theme/default/doc-html.sh ${file} "bloginfo" ${navigation} > html/$( file-basename ).html 
+ }
+ read # breakpoint
 }
 #-------------------------------------------------
 file-echo() {
@@ -400,9 +475,17 @@ EOF
 u2-list() {
  initialize
  get-files # ${files}
+ get-files-hidden # ${files_hidden}
  start-prompt
  generate-navigation # ${navigation}
  for-each-file convert-to-html # > *.html
+ for-each-file error-404 hidden
+ #------------------------------------------------
+ ## sync css
+ false || {
+  cp -rvf css html/
+ }
+ #------------------------------------------------
  _cleanup
 }
 #-------------------------------------------------
