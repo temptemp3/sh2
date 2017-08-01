@@ -1,26 +1,25 @@
 #!/bin/bash
 ## u2.sh - update html v2
-## version 0.2.4 - wip, u2-prompt, sh2-u2 themes wip
+## version 0.2.5 - wip, u2-prompt, sh2-u2 themes wip
 ## =to do=
 ## - strip html comments
 ## - disable markdown underbar for em instead forcing use of single asterisk
 ## - git show with diff filter, --diff-filter=AMd
 ##################################################
 ## get bloginfo
-set -v -x
-rm bloginfo
+test ! -f "bloginfo" || {
+ rm bloginfo
+}
 touch bloginfo
 for info in $( find config -type f -name bloginfo-\* | grep -v -e '~' )
 do
- echo $( basename ${info} ) $( cat ${info} ) | tee -a bloginfo
+ echo $( basename ${info} ) $( cat ${info} ) | tee -a bloginfo &>/dev/null
 done
-set +v +x
 ##################################################
 set -e # exit on error
 ##################################################
-location="${SH2}"
 markdown() { ${SH}/markdown.sh ${@} 2>/dev/null ; }
-file_mime_encoding() { ${location}/file-mime-encoding.sh ${@} ; }
+file_mime_encoding() { ${SH2}/file-mime-encoding.sh ${@} ; }
 ##################################################
 _cleanup() {
  rm navigation* --verbose
@@ -47,7 +46,7 @@ if-config-ignore() {
 }
 #-------------------------------------------------
 process-navigation() {
- echo index
+ #echo index
  local el
  for el in ${navigation}
  do
@@ -187,6 +186,7 @@ get-all-files-show-name-only() {
 get-all-files-git-ls-files() {
  if-config-ignore
  git-ls-files | 
+ grep -e '^docs\/' |
  grep \
   --invert-match \
   --file=config/ignore
@@ -194,8 +194,8 @@ get-all-files-git-ls-files() {
 #-------------------------------------------------
 get-all-files() { 
  # get get-all-files behavior from config later
- get-all-files-show-name-only || # default
  get-all-files-git-ls-files ||
+ get-all-files-show-name-only || # !default
  false # exit on git-ls-files failure
 }
 #-------------------------------------------------
@@ -254,13 +254,12 @@ get-files-fallback() {
  }
 }
 #-------------------------------------------------
-get-files-output() { return ; 
+get-files-output() { 
  local file
  files=$(
   for file in ${files}
   do
-   echo ${file}
-   continue
+   #-----------------------------------------------
    # ignore hidden
    cat ${file} | grep -e 'visibility:hidden' &>/dev/null && {
     #----------------------------------------------
@@ -273,9 +272,10 @@ get-files-output() { return ;
     #}
     #----------------------------------------------
    true 
-   } || {
+   } || { # not hidden
     echo ${file}
    }
+   #-----------------------------------------------
   done
  )
 }
@@ -299,13 +299,12 @@ get-files-hidden() {
  echo files_hidden: ${files_hidden}
 }
 #-------------------------------------------------
-get-files() { set -v -x
+get-files() { 
  get-files-default-behavior
  get-files-filter
- #get-files-fallback
+ get-files-fallback
  get-files-output
  echo files: ${files}
- set +v +x
 }
 #-------------------------------------------------
 which-files() { { local files_name ; files_name="${1}" ; }
@@ -378,72 +377,24 @@ get-global-meta() {
  done
 }
 #-------------------------------------------------
-file-error-404() {
- cat > html/$( file-basename ).html << EOF
-<!DOCTYPE html>
-<html>
-<head>
-<title>Page not found</title>
-</head>
-<body>
-Page not found
-</body>
-</html>
-EOF
-}
+theme="default" # move to config
 #-------------------------------------------------
-file-convert-to-html-fallback() {
- cat << EOF
-<!DOCTYPE html>
-<html>
-<head>
-$( file-charset )
-$( if-global-meta || get-global-meta )
-<link rel="stylesheet" href="css/w3.css">
-<title>$( file-basename )</title>
-<style>
-h4 {
- margin-left: 16px;
-}
-body { 
-  font-size: 16px; /* base font size */
-  line-height: 1.2em ;
-}
-.small {
-  font-size: 12px; /* 75% of the baseline */
-}
-.large {
-  font-size: 20px; /* 125% of the baseline */
-}
-div#header ul li { /* header navigation */
- display: inline ;
-}
-</style>
-</head>
-<body>
-<div id="header">
-${navigation} 
-</div>
-$( h1 $( file-basename ) )
-$( file-the-content )
-<div id="footer">
-${navigation}
-</div>
-</body>
-</html>
-EOF
+file-error-404() { 
+ echo generating html for $( basename ${file} ) ... 1>&2
+ local candidate_theme
+ candidate_theme="theme/${theme}/error-404-html.sh"
+ test ! -f "${candidate_theme}" || {
+  ${candidate_theme} ${file} "bloginfo" ${navigation} > html/$( file-basename ).html 
+ }
 }
 #-------------------------------------------------
 file-convert-to-html() {
- echo -n "converting $( file-basename ) to html ..." 1>&2
- theme="default"
- test ! -f "theme/${theme}/doc-html.sh" && {
-  file-convert-to-html-fallback > html/$( file-basename ).html 
- true 
- } || {
-  theme/default/doc-html.sh ${file} "bloginfo" ${navigation} > html/$( file-basename ).html 
+ echo generating html for $( basename ${file} ) ... 1>&2
+ local candidate_theme
+ candidate_theme="theme/${theme}/doc-html.sh"
+ test ! -f "${candidate_theme}" || {
+  ${candidate_theme} ${file} "bloginfo" ${navigation} > html/$( file-basename ).html 
  }
- read # breakpoint
 }
 #-------------------------------------------------
 file-echo() {
@@ -475,6 +426,8 @@ EOF
 u2-list() {
  initialize
  get-files # ${files}
+ #echo ${files}
+ #echo manual break ; false ;
  get-files-hidden # ${files_hidden}
  start-prompt
  generate-navigation # ${navigation}
