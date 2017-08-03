@@ -1,6 +1,6 @@
 #!/bin/bash
 ## u2.sh - update html v2
-## version 0.2.5 - wip, u2-prompt, sh2-u2 themes wip
+## version 0.2.6 - barebone navigation
 ## =to do=
 ## - strip html comments
 ## - disable markdown underbar for em instead forcing use of single asterisk
@@ -57,6 +57,11 @@ process-navigation() {
  done
 }
 #-------------------------------------------------
+#
+# - may refactor later using navigation-base instead
+#   of barebone 
+#
+navigation=
 get-navigation() {
  local navigation
  navigation=$(
@@ -65,8 +70,6 @@ get-navigation() {
  test "${navigation}"
  process-navigation > navigation-base
 }
-#-------------------------------------------------
-navigation=
 generate-navigation() {
  echo -n "generating navigation ..."
  get-navigation & # > navigation-base
@@ -81,9 +84,18 @@ generate-navigation() {
    ## convert navigation to markdown list       ##
    ## < navigation-base > navigation            ##
    ## ${navigation}                             ##
-   sed -e 's/\(.*\)/- [\1](\1.html)/' navigation-base > navigation 
-   navigation=$( 
-    markdown navigation
+   #sed -e 's/\(.*\)/- [\1](\1.html)/' navigation-base > navigation 
+   sed -e 's/\(.*\)/\1/' navigation-base > navigation 
+   #navigation=$( 
+   # markdown navigation
+   #)
+   #######################
+   #                     #
+   # barebone navigation #
+   #                     #
+   #######################
+   navigation=$(
+    cat navigation
    )
    ###############################################
 
@@ -420,7 +432,8 @@ start-prompt() {
 number of files: $( echo ${files} | wc --words )
 (press enter to start)
 EOF
- read
+ # manual break
+ #read
 }
 #-------------------------------------------------
 u2-list() {
@@ -444,7 +457,8 @@ u2-list() {
 #-------------------------------------------------
 u2-prompt() {
  echo press any key to continue
- read
+ # manual break
+ #read
 }
 #-------------------------------------------------
 u2() { 
