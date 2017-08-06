@@ -1,10 +1,6 @@
 #!/bin/bash
 ## u2.sh - update hwip, error, imports, temp, charset
 ## version 0.2.7 - error handling
-## =to do=
-## - strip html comments
-## - disable markdown underbar for em instead forcing use of single asterisk
-## - git show with diff filter, --diff-filter=AMd
 ##################################################
 ## get bloginfo
 test ! -f "bloginfo" || {
