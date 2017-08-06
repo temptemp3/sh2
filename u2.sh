@@ -1,6 +1,6 @@
 #!/bin/bash
-## u2.sh - update html v2
-## version 0.2.6 - barebone navigation
+## u2.sh - update hwip, error, imports, temp, charset
+## version 0.2.7 - error handling
 ## =to do=
 ## - strip html comments
 ## - disable markdown underbar for em instead forcing use of single asterisk
@@ -16,13 +16,17 @@ do
  echo $( basename ${info} ) $( cat ${info} ) | tee -a bloginfo &>/dev/null
 done
 ##################################################
-set -e # exit on error
+. ${SH2}/error.sh 	# error handling
 ##################################################
-markdown() { ${SH}/markdown.sh ${@} 2>/dev/null ; }
 file_mime_encoding() { ${SH2}/file-mime-encoding.sh ${@} ; }
+generate_temp() { ${SH}/generate-temp.sh ${@} ; }
+markdown() { ${SH}/markdown.sh ${@} 2>/dev/null ; }
 ##################################################
-_cleanup() {
- rm navigation* --verbose
+_cleanup() { 
+ rm navigation* --verbose || true
+ test ! "${temp}" || {
+  rm ${temp}* -rvf
+ }
 }
 #-------------------------------------------------
 if-directory() { { local candidate_directory ; candidate_directory="${1}" ; }
@@ -68,7 +72,7 @@ get-navigation() {
   for-each-file echo 
  )
  test "${navigation}"
- process-navigation > navigation-base
+ process-navigation > ${temp}-navigation-base
 }
 generate-navigation() {
  echo -n "generating navigation ..."
@@ -85,7 +89,7 @@ generate-navigation() {
    ## < navigation-base > navigation            ##
    ## ${navigation}                             ##
    #sed -e 's/\(.*\)/- [\1](\1.html)/' navigation-base > navigation 
-   sed -e 's/\(.*\)/\1/' navigation-base > navigation 
+   sed -e 's/\(.*\)/\1/' ${temp}-navigation-base > ${temp}-navigation 
    #navigation=$( 
    # markdown navigation
    #)
@@ -95,7 +99,7 @@ generate-navigation() {
    #                     #
    #######################
    navigation=$(
-    cat navigation
+    cat ${temp}-navigation
    )
    ###############################################
 
@@ -357,13 +361,16 @@ file-the-content() {
 }
 #-------------------------------------------------
 file-charsets() { { local charset ; charset="${1}" ; }
- echo ${file} ${charset} 1>&2
  case ${charset} in
   SHIFT_JIS)	echo Shift_JIS ;;
   utf-8) 	echo UTF-8 ;;
   us-ascii) 	echo US-ASCII ;;
   *)		echo ISO-8859-1 ;;
  esac 
+}
+#-------------------------------------------------
+meta-charset() {  { local charset ; charset="${1}" ; }
+ true #todo
 }
 #-------------------------------------------------
 file-charset() {
@@ -391,6 +398,17 @@ get-global-meta() {
 #-------------------------------------------------
 theme="default" # move to config
 #-------------------------------------------------
+file-get-mime-encoding() {
+ cat << EOF
+$( basename ${file} ) $( file_mime_encoding ${file} )
+EOF
+}
+#-------------------------------------------------
+file-template() {
+ # todo: replace file-error-404, file-convert-to-html
+ true
+}
+#-------------------------------------------------
 file-error-404() { 
  echo generating html for $( basename ${file} ) ... 1>&2
  local candidate_theme
@@ -405,7 +423,20 @@ file-convert-to-html() {
  local candidate_theme
  candidate_theme="theme/${theme}/doc-html.sh"
  test ! -f "${candidate_theme}" || {
-  ${candidate_theme} ${file} "bloginfo" ${navigation} > html/$( file-basename ).html 
+
+  
+  #-----------------------------------------------
+  #
+  # convert all doc html to utf-8 
+  #
+  ${candidate_theme} ${file} "bloginfo" ${navigation} > ${temp}-$( file-basename).html
+  iconv \
+  -f $( file_mime_encoding ${file} ) \
+  -t utf-8 \
+  ${temp}-$( file-basename).html \
+  | tee html/$( file-basename ).html 
+  #-----------------------------------------------
+
  }
 }
 #-------------------------------------------------
@@ -422,7 +453,15 @@ initialize-directories() {
  if-html 
 }
 #-------------------------------------------------
+temp=
+initialize-temp() {
+ temp=$(
+  generate_temp $( basename ${0} .sh )
+ )
+}
+#-------------------------------------------------
 initialize() {
+ initialize-temp
  initialize-directories
 }
 #-------------------------------------------------
@@ -439,12 +478,23 @@ EOF
 u2-list() {
  initialize
  get-files # ${files}
+ 
+ # output encoding for all files
+ for-each-file get-mime-encoding 
+ # manual break
+ read 
+
  #echo ${files}
  #echo manual break ; false ;
+
  get-files-hidden # ${files_hidden}
  start-prompt
  generate-navigation # ${navigation}
  for-each-file convert-to-html # > *.html
+
+ # manual break
+ read
+
  for-each-file error-404 hidden
  #------------------------------------------------
  ## sync css
@@ -452,7 +502,7 @@ u2-list() {
   cp -rvf css html/
  }
  #------------------------------------------------
- _cleanup
+ #_cleanup
 }
 #-------------------------------------------------
 u2-prompt() {
