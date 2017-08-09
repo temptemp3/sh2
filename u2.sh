@@ -1,6 +1,8 @@
 #!/bin/bash
 ## u2.sh - update hwip, error, imports, temp, charset
-## version 0.2.7 - error handling
+## version 0.2.7b - no manual breaks
+##################################################
+set -v -x
 ##################################################
 ## get bloginfo
 test ! -f "bloginfo" || {
@@ -478,7 +480,7 @@ u2-list() {
  # output encoding for all files
  for-each-file get-mime-encoding 
  # manual break
- read 
+ #read 
 
  #echo ${files}
  #echo manual break ; false ;
@@ -489,7 +491,7 @@ u2-list() {
  for-each-file convert-to-html # > *.html
 
  # manual break
- read
+ #read
 
  for-each-file error-404 hidden
  #------------------------------------------------

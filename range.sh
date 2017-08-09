@@ -1,10 +1,10 @@
 #!/bin/bash
 ## range
 ## - returns range of numbers
-## version 0.1.1 - test-range lower bound update ge zero
+## version 0.1.2 - source error fix
 #####################################################################################
-. error.sh	# error hangling
-error "true"	# show errors
+. $( dirname ${0} )/error.sh	# error hangling
+error "true"			# show errors
 #####################################################################################
 eval-range() {
  eval echo {${range_start}..${range_end}..${range_incr}}
