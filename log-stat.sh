@@ -1,7 +1,7 @@
 #!/bin/bash
 ## log-stat
 ## - breakdown log by path
-## version 1.0.0 - initial
+## version 1.0.1 - log-stat commands entry
 ##################################################
 set -e # exit on error
 ##################################################
@@ -250,29 +250,32 @@ log-stat() {
  commands
 }
 ##################################################
-if [ ${#} -ge 3 ]
+if [ ! ]
 then
- paths="${1}"
- dates="${@:2}"
-elif [ ${#} -eq 1 -a -d "${1}" ] 
-then
- paths="http"
- dates="${1}"
-elif [ ${#} -eq 2 -a -f "${1}" ]
-then
- log="${1}"
- paths="${2}"
-elif [ ${#} -eq 1 -a -f "${1}" ]
-then
- log="${1}"
- paths="http"
-elif [ ${#} -eq 0 -a -f "log.txt" ]
-then
- log="log.txt"
+ true
+#if [ ${#} -ge 3 ]
+#then
+# paths="${1}"
+# dates="${@:2}"
+#elif [ ${#} -eq 1 -a -d "${1}" ] 
+#then
+# paths="http"
+# dates="${1}"
+#elif [ ${#} -eq 2 -a -f "${1}" ]
+#then
+# log="${1}"
+# paths="${2}"
+#elif [ ${#} -eq 1 -a -f "${1}" ]
+#then
+# log="${1}"
+# paths="http"
+#elif [ ${#} -eq 0 -a -f "log.txt" ]
+#then
+# log="log.txt"
 else
  log-stat-help
  exit 1 # wrong args
 fi
 ##################################################
-log-stat
+log-stat ${@}
 ##################################################
