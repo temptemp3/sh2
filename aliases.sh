@@ -1,8 +1,9 @@
 #!/bin/bash
 ## aliases
 ## - aliases
-## version 0.0.1 - commands
+## version 0.0.2 - expand aliases
 ##################################################
+shopt -s expand_aliases
 #-------------------------------------------------
 # commands (alias)
 # - function command cli adapter
