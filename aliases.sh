@@ -14,6 +14,10 @@ shopt -s expand_aliases
 #   to call a child function whose sufix is 
 #   indicated by the first argument with arguments
 # - in the case that ...
+# to do:
+# - exclude args
+# + allow available command listing exclude patterns
+#   to be specified from the outside
 #-------------------------------------------------
 alias commands='
  { local _command ; _command="${1}" ; local args=${@:2} ; }
