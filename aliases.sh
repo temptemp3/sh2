@@ -1,12 +1,19 @@
 #!/bin/bash
 ## aliases
 ## - aliases
-## version 0.0.1 - commands
+## version 0.0.2 - expand aliases
 ##################################################
+shopt -s expand_aliases
 #-------------------------------------------------
 # commands (alias)
 # - function command cli adapter
 # version 0.0.4 - ignore child functions
+# usage:
+# - place commands in a function
+# - on calling the function commands will attempt 
+#   to call a child function whose sufix is 
+#   indicated by the first argument with arguments
+# - in the case that ...
 #-------------------------------------------------
 alias commands='
  { local _command ; _command="${1}" ; local args=${@:2} ; }
