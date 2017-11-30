@@ -15,9 +15,11 @@ shopt -s expand_aliases
 #   indicated by the first argument with arguments
 # - in the case that ...
 # to do:
-# - exclude args
+# - exclude patterns
 # + allow available command listing exclude patterns
 #   to be specified from the outside
+# - exclude subcommands depth d, where d is greater
+#   than 1
 #-------------------------------------------------
 alias commands='
  { local _command ; _command="${1}" ; local args=${@:2} ; }

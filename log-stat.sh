@@ -1,9 +1,10 @@
 #!/bin/bash
 ## log-stat
 ## - breakdown log by path
-## version 1.0.1 - log-stat commands entry
+## version 1.0.2 - for log command
 ##################################################
-set -e # exit on error
+. $( dirname ${0} )/error.sh	# error handling
+error "true"			# show errors
 ##################################################
 . $( dirname ${0} )/aliases.sh
 ##################################################
@@ -71,12 +72,12 @@ get-paths() {
 }
 #-------------------------------------------------
 print-path-line() {
- get-paths | 
+ get-paths ${paths} | 
  sed -n "${1}p"
 }
 #-------------------------------------------------
 get-path-lines() {
- get-paths | 
+ get-paths ${paths} | 
  wc --lines
 }
 #-------------------------------------------------
@@ -91,9 +92,11 @@ get-path-count() {
 }
 #-------------------------------------------------
 leading-digit() { { local number ; number="${1}" ; }
+ ## debug
  #set -v -x
  #echo ${number}
  echo ${number:0:1}
+ ## debug
  #set +v +x
 }
 #-------------------------------------------------
@@ -120,6 +123,8 @@ get-log-path() {
  }
 }
 #-------------------------------------------------
+# log-stat-payload
+# - sum line output
 log-stat-payload() { { local log ; log="${1}" ; }
  local sum
  local path_line_no
@@ -132,6 +137,7 @@ log-stat-payload() { { local log ; log="${1}" ; }
   path_line=$( print-path-line ${path} ${path_line_no} )
   path_name=$( car ${path_line} )
   path_pattern=$( cdr ${path_line} )
+  
   #echo ${path_line} : ${path_name} : ${path_pattern}
   path_count=$( get-path-count )
 
@@ -157,6 +163,8 @@ log-stat-payload() { { local log ; log="${1}" ; }
  echo sum: ${sum} 
 }
 #-------------------------------------------------
+# log-stat-payload2
+# - header data block output
 log-stat-payload2() { { local log ; log="${1}" ; }
  local sum
  local path_line_no
@@ -182,7 +190,8 @@ log-stat-payload2() { { local log ; log="${1}" ; }
    path_pattern_previous="\(${path_pattern}\)" 
   }
 
-  echo ${path_line} : ${path_name} : ${path_pattern} : ${path_count} : ${path_pattern_previous} 1>&2
+  ## debug
+  #echo ${path_line} : ${path_name} : ${path_pattern} : ${path_count} : ${path_pattern_previous} 1>&2
 
   header="${header},${path_name}" 
   data="${data},${path_count}"
@@ -208,29 +217,67 @@ ${data}
 EOF
 }
 #-------------------------------------------------
-log-stat-for-each-date() {
+for-each-date() {
  local log
+ local date
  test ! "${dates}" || {
   for date in ${dates}
   do
-  # test if directory
-  test ! -d "${date}" || {
-   log="log.txt"
-   cat ${date}/* > ${log}
-   log-stat-for-log
-  }
+   ## debug
+   #echo ${date}
+   #continue
+   ## test if directory
+   test ! -d "${date}" || {
+    log="log.txt"
+    ## populate log
+    { 
+      find ${date} -type f -name \*.log \
+	      | xargs cat 
+    } > ${log}
+    #cat ${date}/* > ${log}
+    ## debug
+    {
+      echo log.txt
+      du log.txt 
+      head -n 3 log.txt
+    } 1>&2
+    ## debug\
+    #read
+    #cat ${log}
+    log-stat-for-log "${log}" "${paths}"
+   }
+   read
   done
  }
 }
 #-------------------------------------------------
-log-stat-for-log() {
- test ! "${log}" || {
-  #log-stat-payload ${log}
-  log-stat-payload2 ${log}
+log-stat-for-date() { { local paths ; paths="${1-http}" ; local dates=${@:2} ; }
+ ## debug
+ #echo ${FUNCNAME}
+ #echo paths: ${paths}
+ #echo dates: ${dates}
+ for-each-date
+}
+#-------------------------------------------------
+log-stat-for-log() { { local log ; log="${1-log.txt}" ; local paths ; paths="${2-http}" ; }
+ test -f "${log}" || {
+  error "log file '${log}' does not exist" "" ""
+  false 
  }
+ ## debug
+ #echo ${log}
+ #return
+ ## payloads
+ #log-stat-payload ${log}
+ log-stat-payload2 ${log}
+}
+#-------------------------------------------------
+log-stat-for() {
+ commands
 }
 #-------------------------------------------------
 log-stat-list() {
+ return
  log-stat-for-each-date
  log-stat-for-log
 }
@@ -238,14 +285,13 @@ log-stat-list() {
 log-stat-help() {
  cat << EOF
 log-stat 
-1 - log file 
- default:log.txt
-2 - dates directory
 
 EOF
+log-stat
 }
 #-------------------------------------------------
 log-stat() { 
+ ## depreciate
  #log-stat-list 2> error.txt
  commands
 }
@@ -253,6 +299,7 @@ log-stat() {
 if [ ! ]
 then
  true
+## depreciate
 #if [ ${#} -ge 3 ]
 #then
 # paths="${1}"
@@ -272,9 +319,9 @@ then
 #elif [ ${#} -eq 0 -a -f "log.txt" ]
 #then
 # log="log.txt"
-else
- log-stat-help
- exit 1 # wrong args
+#else
+# log-stat-help
+# exit 1 # wrong args
 fi
 ##################################################
 log-stat ${@}
