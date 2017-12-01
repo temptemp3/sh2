@@ -1,7 +1,7 @@
 #!/bin/bash
 ## log-stat
 ## - breakdown log by path
-## version 1.0.2 - for log command
+## version 1.0.3 - export combine-log-location
 ##################################################
 . $( dirname ${0} )/error.sh	# error handling
 error "true"			# show errors
@@ -217,6 +217,11 @@ ${data}
 EOF
 }
 #-------------------------------------------------
+combine-log-location() { { local log_location ; log_location="${1}" ; }
+ find ${log_location} -type f -name \*.log \
+	 | xargs cat 
+}
+#-------------------------------------------------
 for-each-date() {
  local log
  local date
@@ -230,10 +235,13 @@ for-each-date() {
    test ! -d "${date}" || {
     log="log.txt"
     ## populate log
-    { 
-      find ${date} -type f -name \*.log \
-	      | xargs cat 
-    } > ${log}
+    combine-log-location ${date} > ${log}
+    ## 1
+    #{ 
+    #  find ${date} -type f -name \*.log \
+    #	      | xargs cat 
+    #} > ${log}
+    ## 0
     #cat ${date}/* > ${log}
     ## debug
     {
@@ -276,7 +284,8 @@ log-stat-for() {
  commands
 }
 #-------------------------------------------------
-log-stat-list() {
+log-stat-list() { 
+ ## may depreciate
  return
  log-stat-for-each-date
  log-stat-for-log
@@ -288,6 +297,14 @@ log-stat
 
 EOF
 log-stat
+}
+#-------------------------------------------------
+log-stat-combine() { { local log_location ; log_location="${1}" ; }
+ test -d "${log_location}"  || {
+  error "directory '${log_location}' does not exist" "${FUNCNAME}" "${LINENO}"
+  false
+ }
+ combine-log-location ${log_location}
 }
 #-------------------------------------------------
 log-stat() { 
