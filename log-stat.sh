@@ -2,6 +2,8 @@
 ## log-stat
 ## - breakdown log by path
 ## version 1.0.3 - export combine-log-location
+## =to do=
+## + implement hour parameter
 ##################################################
 . $( dirname ${0} )/error.sh	# error handling
 error "true"			# show errors
