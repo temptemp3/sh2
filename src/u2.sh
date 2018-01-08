@@ -1,23 +1,34 @@
 #!/bin/bash
-## u2.sh - update html v2
-## version 0.2.3 - wip
-## =to do=
-## - strip html comments
-## - disable markdown underbar for em instead forcing use of single asterisk
-## - git show with diff filter, --diff-filter=AMd
+## u2.sh - update hwip, error, imports, temp, charset
+## version 0.2.7b - no manual breaks
 ##################################################
-set -e # exit on error
+set -v -x
 ##################################################
-location="${SH2}"
+## get bloginfo
+test ! -f "bloginfo" || {
+ rm bloginfo
+}
+touch bloginfo
+for info in $( find config -type f -name bloginfo-\* | grep -v -e '~' )
+do
+ echo $( basename ${info} ) $( cat ${info} ) | tee -a bloginfo &>/dev/null
+done
+##################################################
+. ${SH2}/error.sh 	# error handling
+##################################################
+file_mime_encoding() { ${SH2}/file-mime-encoding.sh ${@} ; }
+generate_temp() { ${SH}/generate-temp.sh ${@} ; }
 markdown() { ${SH}/markdown.sh ${@} 2>/dev/null ; }
-file_mime_encoding() { ${location}/file-mime-encoding.sh ${@} ; }
 ##################################################
 cdr() {
  echo ${@:2}
 }
 #-------------------------------------------------
-_cleanup() {
- rm navigation* --verbose
+_cleanup() { 
+ rm navigation* --verbose || true
+ test ! "${temp}" || {
+  rm ${temp}* -rvf
+ }
 }
 #-------------------------------------------------
 if-directory() { { local candidate_directory ; candidate_directory="${1}" ; }
@@ -73,18 +84,8 @@ if-config-ignore() {
  }
 }
 #-------------------------------------------------
-deslugify() { { local text ; text="${@}" ; }
- echo ${text} |
- sed \
-  -e 's/[-_]\+/ /g'
-}
-#-------------------------------------------------
-h1() { { local text ; text="${@}" ; }
- markdown "# $( deslugify ${text} )" 
-}
-#-------------------------------------------------
 process-navigation() {
- echo index
+ #echo index
  local el
  for el in ${navigation}
  do
@@ -95,16 +96,19 @@ process-navigation() {
  done
 }
 #-------------------------------------------------
+#
+# - may refactor later using navigation-base instead
+#   of barebone 
+#
+navigation=
 get-navigation() {
  local navigation
  navigation=$(
   for-each-file echo 
  )
  test "${navigation}"
- process-navigation > navigation-base
+ process-navigation > ${temp}-navigation-base
 }
-#-------------------------------------------------
-navigation=
 generate-navigation() {
  echo -n "generating navigation ..."
  get-navigation & # > navigation-base
@@ -119,9 +123,18 @@ generate-navigation() {
    ## convert navigation to markdown list       ##
    ## < navigation-base > navigation            ##
    ## ${navigation}                             ##
-   sed -e 's/\(.*\)/- [\1](\1.html)/' navigation-base > navigation 
-   navigation=$( 
-    markdown navigation
+   #sed -e 's/\(.*\)/- [\1](\1.html)/' navigation-base > navigation 
+   sed -e 's/\(.*\)/\1/' ${temp}-navigation-base > ${temp}-navigation 
+   #navigation=$( 
+   # markdown navigation
+   #)
+   #######################
+   #                     #
+   # barebone navigation #
+   #                     #
+   #######################
+   navigation=$(
+    cat ${temp}-navigation
    )
    ###############################################
 
@@ -224,6 +237,7 @@ get-all-files-show-name-only() {
 get-all-files-git-ls-files() {
  if-config-ignore
  git-ls-files | 
+ grep -e '^docs\/' |
  grep \
   --invert-match \
   --file=config/ignore
@@ -231,8 +245,8 @@ get-all-files-git-ls-files() {
 #-------------------------------------------------
 get-all-files() { 
  # get get-all-files behavior from config later
- get-all-files-show-name-only || # default
  get-all-files-git-ls-files ||
+ get-all-files-show-name-only || # !default
  false # exit on git-ls-files failure
 }
 #-------------------------------------------------
@@ -291,8 +305,49 @@ get-files-fallback() {
  }
 }
 #-------------------------------------------------
-get-files-output() {
- echo "${files}"
+get-files-output() { 
+ local file
+ files=$(
+  for file in ${files}
+  do
+   #-----------------------------------------------
+   # ignore hidden
+   cat ${file} | grep -e 'visibility:hidden' &>/dev/null && {
+    #----------------------------------------------
+    # on hidden doc
+    #local candidate_hidden_doc_html
+    #candidate_hidden_doc_html="html/$( basename ${file} ).html" 
+    #test ! -f "${candidate_hidden_doc_html}" || {
+    # rm ${candidate_hidden_doc_html} --verbose 1>&2
+    # file-hidden-html > ${candidate_hidden_doc_html}
+    #}
+    #----------------------------------------------
+   true 
+   } || { # not hidden
+    echo ${file}
+   }
+   #-----------------------------------------------
+  done
+ )
+}
+#-------------------------------------------------
+files_hidden=
+get-files-hidden() { 
+ files_hidden=$( 
+  local file
+  for file in $( git ls-files | grep -e '^docs' )
+  do
+   test ! -f "${file}" || {
+    cat ${file} | grep -e 'visibility:hidden' &>/dev/null && { true ; 
+     echo ${file}
+    true
+    } || { 
+     true # not hidden file
+    }
+   }
+  done
+ )
+ echo files_hidden: ${files_hidden}
 }
 #-------------------------------------------------
 get-files-override() {
@@ -306,11 +361,19 @@ get-files() {
  get-files-filter
  get-files-fallback
  get-files-output
+ echo files: ${files}
 }
 #-------------------------------------------------
-for-each-file() { { local function ; function="${1}" ; }
+which-files() { { local files_name ; files_name="${1}" ; }
+ case ${files_name} in
+  hidden) echo ${files_hidden} ;;
+  *) echo ${files} ;;
+ esac
+}
+#-------------------------------------------------
+for-each-file() { { local function ; function="${1}" ; local files_name ; files_name="${2}" ; }
  local file
- for file in ${files}
+ for file in $( which-files ${files_name} )
  do
   file-${function} ${file} &
  done
@@ -339,13 +402,16 @@ file-the-content() {
 }
 #-------------------------------------------------
 file-charsets() { { local charset ; charset="${1}" ; }
- echo ${file} ${charset} 1>&2
  case ${charset} in
   SHIFT_JIS)	echo Shift_JIS ;;
   utf-8) 	echo UTF-8 ;;
   us-ascii) 	echo US-ASCII ;;
   *)		echo ISO-8859-1 ;;
  esac 
+}
+#-------------------------------------------------
+meta-charset() {  { local charset ; charset="${1}" ; }
+ true #todo
 }
 #-------------------------------------------------
 file-charset() {
@@ -371,47 +437,48 @@ get-global-meta() {
  done
 }
 #-------------------------------------------------
-file-convert-to-html() {
- echo -n "converting $( file-basename ) to html ..."
- cat > html/$( file-basename ).html << EOF
-<!DOCTYPE html>
-<html>
-<head>
-$( file-charset )
-$( if-global-meta || get-global-meta )
-<title>$( file-basename )</title>
-<style>
-h4 {
- margin-left: 16px;
-}
-body { 
-  font-size: 16px; /* base font size */
-  line-height: 1.2em ;
- 
-}
-.small {
-  font-size: 12px; /* 75% of the baseline */
-}
-.large {
-  font-size: 20px; /* 125% of the baseline */
-}
-div#header ul li { /* header navigation */
- display: inline ;
-}
-</style>
-</head>
-<body>
-<div id="header">
-${navigation} 
-</div>
-$( h1 $( file-basename ) )
-$( file-the-content )
-<div id="footer">
-${navigation}
-</div>
-</body>
-</html>
+theme="default" # move to config
+#-------------------------------------------------
+file-get-mime-encoding() {
+ cat << EOF
+$( basename ${file} ) $( file_mime_encoding ${file} )
 EOF
+}
+#-------------------------------------------------
+file-template() {
+ # todo: replace file-error-404, file-convert-to-html
+ true
+}
+#-------------------------------------------------
+file-error-404() { 
+ echo generating html for $( basename ${file} ) ... 1>&2
+ local candidate_theme
+ candidate_theme="theme/${theme}/error-404-html.sh"
+ test ! -f "${candidate_theme}" || {
+  ${candidate_theme} ${file} "bloginfo" ${navigation} > html/$( file-basename ).html 
+ }
+}
+#-------------------------------------------------
+file-convert-to-html() {
+ echo generating html for $( basename ${file} ) ... 1>&2
+ local candidate_theme
+ candidate_theme="theme/${theme}/doc-html.sh"
+ test ! -f "${candidate_theme}" || {
+
+  
+  #-----------------------------------------------
+  #
+  # convert all doc html to utf-8 
+  #
+  ${candidate_theme} ${file} "bloginfo" ${navigation} > ${temp}-$( file-basename).html
+  iconv \
+  -f $( file_mime_encoding ${file} ) \
+  -t utf-8 \
+  ${temp}-$( file-basename).html \
+  | tee html/$( file-basename ).html 
+  #-----------------------------------------------
+
+ }
 }
 #-------------------------------------------------
 file-echo() {
@@ -427,7 +494,15 @@ initialize-directories() {
  if-html 
 }
 #-------------------------------------------------
+temp=
+initialize-temp() {
+ temp=$(
+  generate_temp $( basename ${0} .sh )
+ )
+}
+#-------------------------------------------------
 initialize() {
+ initialize-temp
  initialize-directories
 }
 #-------------------------------------------------
@@ -437,19 +512,48 @@ start-prompt() {
 number of files: $( echo ${files} | wc --words )
 (press enter to start)
 EOF
- read
+ # manual break
+ #read
 }
 #-------------------------------------------------
 u2-list() {
  initialize
  get-files # ${files}
+ 
+ # output encoding for all files
+ for-each-file get-mime-encoding 
+ # manual break
+ #read 
+
+ #echo ${files}
+ #echo manual break ; false ;
+
+ get-files-hidden # ${files_hidden}
  start-prompt
  generate-navigation # ${navigation}
  for-each-file convert-to-html # > *.html
- _cleanup
+
+ # manual break
+ #read
+
+ for-each-file error-404 hidden
+ #------------------------------------------------
+ ## sync css
+ false || {
+  cp -rvf css html/
+ }
+ #------------------------------------------------
+ #_cleanup
+}
+#-------------------------------------------------
+u2-prompt() {
+ echo press any key to continue
+ # manual break
+ #read
 }
 #-------------------------------------------------
 u2() { 
+ u2-prompt
  u2-list
 }
 ##################################################

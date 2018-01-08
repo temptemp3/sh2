@@ -5,6 +5,7 @@ just some bash scripts
 ## requirements
 
 ### git
+
 #### windows
 
 - [Git for windows](https://git-for-windows.github.io/)
@@ -27,6 +28,16 @@ SH=/path/to/script
 
 ```
 ${SH}/command.sh args
+```
+
+---
+
+## updates
+
+### updating from test
+
+```
+git subtree push --prefix=src/ origin update
 ```
 
 ---
