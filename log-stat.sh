@@ -2,8 +2,11 @@
 ## log-stat
 ## - breakdown log by path
 ## version 0.0.1 - initial
+## =to do=
+## + implement hour parameter
 ##################################################
 set -e # exit on error
+#set -v -x
 ##################################################
 range() { ${SH2}/range.sh ${@} ; }
 print-line() { ${SH2}/print-line.sh ${@} ; }
