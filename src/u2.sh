@@ -459,6 +459,14 @@ file-error-404() {
  }
 }
 #-------------------------------------------------
+file-strip-html-comments() { { local file ; file="${1}" ; }
+ file-strip-html-inline-comments
+}
+#-------------------------------------------------
+file-strip-html-inline-comments() { 
+ sed -e 's/<!--[^\1]*\(-\)->//g' ${file}
+}
+#-------------------------------------------------
 file-convert-to-html() {
  echo generating html for $( basename ${file} ) ... 1>&2
  local candidate_theme
@@ -467,14 +475,22 @@ file-convert-to-html() {
 
   
   #-----------------------------------------------
+  # geneate document html from theme
+  ${candidate_theme} ${file} "bloginfo" ${navigation} > ${temp}-$( file-basename ).html-1
+  #-----------------------------------------------
+  # strip document html comments
+  file-strip-html ${temp}-$( file-basename).html-1 > ${temp}-$( file-basename ).html-2
+  #-----------------------------------------------
   #
   # convert all doc html to utf-8 
   #
-  ${candidate_theme} ${file} "bloginfo" ${navigation} > ${temp}-$( file-basename).html
+  # < ${temp}-$( file-basename).html
+  # > html/$( file-basename ).html
+  #
   iconv \
   -f $( file_mime_encoding ${file} ) \
   -t utf-8 \
-  ${temp}-$( file-basename).html \
+  ${temp}-$( file-basename).html-2 \
   | tee html/$( file-basename ).html 
   #-----------------------------------------------
 
