@@ -1,7 +1,7 @@
 #!/bin/bash
 ## log-stat
 ## - breakdown log by path
-## version 1.0.3 - export combine-log-location
+## version 1.0.4 - import car, cdr
 ##################################################
 . $( dirname ${0} )/error.sh	# error handling
 error "true"			# show errors
@@ -10,15 +10,9 @@ error "true"			# show errors
 ##################################################
 range() { $( dirname ${0} )/range.sh ${@} ; }
 print-line() { $( dirname ${0} )/print-line.sh ${@} ; }
+car() { $( dirname ${0} )/car.sh ${@} ; }
+cdr() { $( dirname ${0} )/cdr.sh ${@} ; }
 ##################################################
-car() {
- echo ${1}
-}
-#-------------------------------------------------
-cdr() {
- echo ${@:2}
-}
-#-------------------------------------------------
 get-paths-wordpress() {
 cat << EOF
 name		path
