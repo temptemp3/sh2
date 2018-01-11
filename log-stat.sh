@@ -1,12 +1,12 @@
 #!/bin/bash
 ## log-stat
 ## - breakdown log by path
-## version 1.0.4 - import car, cdr
+## version 1.0.5 - wip combine
 ##################################################
 . $( dirname ${0} )/error.sh	# error handling
 error "true"			# show errors
 ##################################################
-. $( dirname ${0} )/aliases.sh
+. $( dirname ${0} )/aliases/commands.sh
 ##################################################
 range() { $( dirname ${0} )/range.sh ${@} ; }
 print-line() { $( dirname ${0} )/print-line.sh ${@} ; }
@@ -293,46 +293,43 @@ EOF
 log-stat
 }
 #-------------------------------------------------
-log-stat-combine() { { local log_location ; log_location="${1}" ; }
+log-stat-combine-help() {
+ cat << EOF
+log-stat combine command - combines log files
+
+USAGE
+
+	log-stat combine directory
+
+	directory	path of directory containg log files
+EOF
+}
+#-------------------------------------------------
+log-stat-combine-directory() {
  test -d "${log_location}"  || {
   error "directory '${log_location}' does not exist" "${FUNCNAME}" "${LINENO}"
   false
  }
- combine-log-location ${log_location}
+}
+#-------------------------------------------------
+log-stat-combine() { { local log_location ; log_location="${1}" ; }
+ test "${log_location}" || {
+  error "false"
+  {
+   ${FUNCNAME}-help
+  } 1>&2
+  false
+ }
+ commands
 }
 #-------------------------------------------------
 log-stat() { 
- ## depreciate
- #log-stat-list 2> error.txt
  commands
 }
 ##################################################
 if [ ! ]
 then
  true
-## depreciate
-#if [ ${#} -ge 3 ]
-#then
-# paths="${1}"
-# dates="${@:2}"
-#elif [ ${#} -eq 1 -a -d "${1}" ] 
-#then
-# paths="http"
-# dates="${1}"
-#elif [ ${#} -eq 2 -a -f "${1}" ]
-#then
-# log="${1}"
-# paths="${2}"
-#elif [ ${#} -eq 1 -a -f "${1}" ]
-#then
-# log="${1}"
-# paths="http"
-#elif [ ${#} -eq 0 -a -f "log.txt" ]
-#then
-# log="log.txt"
-#else
-# log-stat-help
-# exit 1 # wrong args
 fi
 ##################################################
 log-stat ${@}
