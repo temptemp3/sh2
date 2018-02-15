@@ -27,8 +27,10 @@ alias parse-command-args='
  _args=$( _cdr ${command_args} )
 '
 alias commands='
- test "${_command}" || { local _command ; _command="${1}" ; }
- test "${_args}" || { local _args ; _args=${@:2} ; }
+ #test "${_command}" || { local _command ; _command="${1}" ; }
+ #test "${_args}" || { local _args ; _args=${@:2} ; }
+ { local _command ; _command="${1}" ; }
+ { local _args ; _args=${@:2} ; }
  test ! "$( declare -f ${FUNCNAME}-${_command} )" && {
   {    
     test ! "${_command}" || {

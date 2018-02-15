@@ -11,7 +11,9 @@ test ! -f "bloginfo" || {
 touch bloginfo
 for info in $( find config -type f -name bloginfo-\* | grep -v -e '~' )
 do
- echo $( basename ${info} ) $( cat ${info} ) | tee -a bloginfo &>/dev/null
+ {
+   echo $( basename ${info} ) $( cat ${info} ) 
+ } |  tee -a bloginfo &>/dev/null
 done
 ##################################################
 . ${SH2}/error.sh 	# error handling
@@ -26,6 +28,8 @@ _cleanup() {
   rm ${temp}* -rvf
  }
 }
+#-------------------------------------------------
+cdr() { echo ${@:2} ; }
 #-------------------------------------------------
 if-directory() { { local candidate_directory ; candidate_directory="${1}" ; }
  test -d "${candidate_directory}" || {
@@ -55,6 +59,8 @@ process-navigation() {
   test ! "${el}" = "index" || {
    continue
   }
+  ###***
+
   echo ${el}
  done
 }
@@ -70,8 +76,11 @@ get-navigation() {
   for-each-file echo 
  )
  test "${navigation}"
- process-navigation > ${temp}-navigation-base
+ {
+   process-navigation
+ } >  ${temp}-navigation-base
 }
+#-------------------------------------------------
 generate-navigation() {
  echo -n "generating navigation ..."
  get-navigation & # > navigation-base
@@ -446,6 +455,21 @@ file-generate-link() {
  markdown "- [$( file-basename )]($( file-basename ).html)"
 }
 #-------------------------------------------------
+categories=
+initialize-bloginfo-categories() {
+ 
+ local category
+ for category in $( find config -type f -name category-\* )
+ do
+  categories="${categories} $( basename ${category} | cut "-f2-" "-d-" )"
+ done 
+	
+}
+#-------------------------------------------------
+initialize-bloginfo() {
+ ${FUNCNAME}-categories
+}
+#-------------------------------------------------
 initialize-directories() {
  if-config
  if-html 
@@ -459,8 +483,9 @@ initialize-temp() {
 }
 #-------------------------------------------------
 initialize() {
- initialize-temp
- initialize-directories
+ ${FUNCNAME}-temp
+ ${FUNCNAME}-directories
+ ${FUNCNAME}-bloginfo
 }
 #-------------------------------------------------
 start-prompt() {
@@ -474,7 +499,14 @@ EOF
 }
 #-------------------------------------------------
 u2-list() {
+
+
  initialize
+
+ #echo manual break 1>&2
+ #echo ${categories}
+ #exit
+
  get-files # ${files}
  
  # output encoding for all files
@@ -487,6 +519,10 @@ u2-list() {
 
  get-files-hidden # ${files_hidden}
  start-prompt
+
+ #echo manual break 1>&2
+ #exit
+
  generate-navigation # ${navigation}
  for-each-file convert-to-html # > *.html
 

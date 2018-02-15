@@ -3,6 +3,13 @@
 ## - simple lazy caching
 ## version 0.0.1 - initial
 ##################################################
+shopt -s expand_aliases	# enable alias expansion
+alias cache-generic-payload='
+{ 
+  cache "${cache}/${FUNCNAME}" "${FUNCNAME}-payload"
+}
+'
+##################################################
 cache="$( dirname ${0} )/cache"
 cache() { { local candidate_key ; candidate_key="${1}" ; local function_name ; function_name="${2}" ; }
 
