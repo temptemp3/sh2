@@ -1,7 +1,7 @@
 #!/bin/bash
 ## log-stat
 ## - breakdown log by path
-## version 1.0.5 - wip combine
+## version 1.1.6 - wip combine
 ##################################################
 . $( dirname ${0} )/error.sh	# error handling
 error "true"			# show errors
@@ -13,6 +13,43 @@ print-line() { $( dirname ${0} )/print-line.sh ${@} ; }
 car() { $( dirname ${0} )/car.sh ${@} ; }
 cdr() { $( dirname ${0} )/cdr.sh ${@} ; }
 ##################################################
+get-paths-amp() {
+cat << EOF
+name				path
+amp				amp=
+other-html			html
+other-style-css			css\/.*css
+other-style-wp-theme-image-png	images\/.*png
+other-style-wp-theme-main	style.css
+other-style-wp-theme-2nd	style2[a-z]*.css
+other-style-font		font-awesome.min.css
+other-font-fa			fontawesome-webfont.woff
+other-font-fa2			fontawesome-webfont.woff2
+other-font-fa-eot		fontawesome-webfont.eot
+other-font-fa-ttf		fontawesome-webfont.ttf
+other-couples			utm_source=couples
+other-feed			feed
+other-sitemap			sitemap
+other-robots			robots.txt
+other-favicon			favicon.ico
+other-top-80			80\/\sHTTP
+other-top-8000			8000\/\sHTTP
+other-search-80			80\/[?]s=[^\s]*.HTTP
+other-search-8000		8000\/[?]s=[^\s]*.HTTP
+other-feed-rss-8000		8000\/rss\sHTTP
+other-feed-atom-8000		8000\/atom\sHTTP
+other-rir-category-examp-8000	8000\/exam\sHTTP
+other-cfd			Amazon\sCloudFront
+other-admin-ajax		admin-ajax.php
+other-touch-icon		touch-icon
+other-page			\/page\/
+other-tag			\/tag\/
+other-page-category		\/[a-z-]\+\/
+other-sp-search			sp-search.htm
+other-crawler-graphshot		GrapeshotCrawler
+EOF
+} 
+#-------------------------------------------------
 get-paths-wordpress() {
 cat << EOF
 name		path
@@ -45,9 +82,11 @@ http-206	206\s206
 http-301	301\s301
 http-302	302\s302
 http-304	304\s304
+http-400	400\s400
 http-403	403\s403
 http-404	404\s404
 http-503	503\s503
+http-500	500\s500
 http-504	 -1\s504
 EOF
 } 
@@ -271,7 +310,7 @@ log-stat-for-log() { { local log ; log="${1-log.txt}" ; local paths ; paths="${2
  #return
  ## payloads
  #log-stat-payload ${log}
- log-stat-payload2 ${log}
+ log-stat-payload2 ${log} #| sed 's/,/	/g' | tee /dev/clipboard
 }
 #-------------------------------------------------
 log-stat-for() {
@@ -301,7 +340,7 @@ USAGE
 
 	log-stat combine directory
 
-	directory	path of directory containg log files
+	directory	path of directory containing log files
 EOF
 }
 #-------------------------------------------------
@@ -310,6 +349,8 @@ log-stat-combine-directory() {
   error "directory '${log_location}' does not exist" "${FUNCNAME}" "${LINENO}"
   false
  }
+ echo "combining log files at location '${log_location}'" 1>&2
+ find ${log_location} -type f | xargs cat > combined-$( date +%s ).txt
 }
 #-------------------------------------------------
 log-stat-combine() { { local log_location ; log_location="${1}" ; }
@@ -320,7 +361,7 @@ log-stat-combine() { { local log_location ; log_location="${1}" ; }
   } 1>&2
   false
  }
- commands
+ ${FUNCNAME}-directory
 }
 #-------------------------------------------------
 log-stat() { 
