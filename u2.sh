@@ -152,12 +152,14 @@ git-show-name-only-if-depth() { { local depth ; depth="${1}" ; }
 }
 #-------------------------------------------------
 git-ls-files() {
- git ls-files
+ git ls-files docs
 }
 #-------------------------------------------------
 git-show-name-only() { { local depth ; depth="${1}" ; }
- git show --name-only $( git-show-name-only-if-depth ${depth} ) |
- grep -v -e 'html'
+  {
+    git show --name-only $( git-show-name-only-if-depth ${depth} ) docs \
+    | grep -v -e 'html'
+  }
 }
 #-------------------------------------------------
 get-all-files-show-name-only-single() { { local depth ; depth="${1}" ; }
@@ -218,9 +220,13 @@ get-all-files-git-ls-files() {
 get-all-files() { 
  # get get-all-files behavior from config later
  get-all-files-git-ls-files ||
- get-all-files-show-name-only || # !default
+ #get-all-files-show-name-only || # !default
  false # exit on git-ls-files failure
 }
+#echo getting all files ..
+#sleep 1
+#get-all-files
+#exit
 #-------------------------------------------------
 get-untracked-files() {
  git status --short |
@@ -325,10 +331,12 @@ get-files-hidden() {
 get-files() { 
  get-files-default-behavior
  get-files-filter
- get-files-fallback
- get-files-output
+ #get-files-fallback
+ #get-files-output
  echo files: ${files}
 }
+#get-files
+#exit
 #-------------------------------------------------
 which-files() { { local files_name ; files_name="${1}" ; }
  case ${files_name} in
@@ -503,12 +511,17 @@ u2-list() {
 
  initialize
 
+ #read
+
  #echo manual break 1>&2
  #echo ${categories}
  #exit
 
  get-files # ${files}
  
+ #echo "files: ${files}"
+ #read
+
  # output encoding for all files
  for-each-file get-mime-encoding 
  # manual break
