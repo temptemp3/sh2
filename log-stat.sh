@@ -1,13 +1,11 @@
 #!/bin/bash
 ## log-stat
 ## - breakdown log by path
-## version 1.1.7 - export paths
-## + move individual log files to sub folder
-## =to do=
-## (7 Apr 2018)
+## version 1.2.0 - sort output by path count
 ## + break on empty other
 ##	 + allow get path count loop to terminate if remaining paths is empty
 ##		 + as in case of early hours
+## =to do=
 ## (6 Apr 2018)
 ## + allow path file comments
 ## (5 Apr 2018)
@@ -135,12 +133,16 @@ padded-digit() { { local candidate_digit ; candidate_digit="${1}" ; }
 }
 #-------------------------------------------------
 leading-digit() { { local number ; number="${1}" ; }
- ## debug
+
+ ## debug leading digit start
  #set -v -x
  #echo ${number}
+
  echo ${number:0:1}
- ## debug
+
+ ## debug leading digit end
  #set +v +x
+
 }
 #-------------------------------------------------
 get-percent-total() { 
@@ -208,59 +210,193 @@ log-stat-payload() { { local log ; log="${1}" ; }
 #-------------------------------------------------
 # log-stat-payload2
 # - header data block output
-log-stat-payload2() { { local log ; log="${1}" ; }
- local sum
- local path_line_no
- local total
- local header
- local data
- total=$( get-total-count )
- header="total"
- data="${total}"
- sum=0
- for path_line_no in $( get-path-line-range )
- do 
-  path_line=$( print-path-line ${path} ${path_line_no} )
-  path_name=${paths}.$( car ${path_line} )
-  path_pattern=$( cdr ${path_line} )
-
-
-  path_count=$( get-path-count )
-
-  test "${path_pattern_previous}" && {
-   path_pattern_previous="${path_pattern_previous}\|\(${path_pattern}\)" 
-  } || {
-   path_pattern_previous="\(${path_pattern}\)" 
-  }
-
-  ## debug
-  #echo ${path_line} : ${path_name} : ${path_pattern} : ${path_count} : ${path_pattern_previous} 1>&2
-
-  test ${path_count} -eq 0 || {
-   header="${header},$( echo ${path_name} | cut '-f2-' '-d.' )" 
-   data="${data},${path_count}"
-   sum=$(( ${sum} + ${path_count} ))
-  }
-
-  unset path_line
-  unset path_name
-  unset path_pattern
-
- done
- # get other path_count ##########################
- path_line=$( print-path-line ${path} ${path_line_no} )
- path_name=${paths}.other
- path_count=$( get-path-count ) 
- header="${header},$( echo ${path_name} | cut '-f2-' '-d.' )" 
- data="${data},${path_count}"
- sum=$(( ${sum} + ${path_count} ))  
- #################################################
- header="${header},sum"
- data="${data},${sum}"
+# version 0.0.2 - output sorted by path hit count
+#-------------------------------------------------
+log-stat-payload2-output-unsorted() { 
+ ## output not sorted by path count
  cat << EOF
 ${header}
 ${data}
 EOF
+}
+#-------------------------------------------------
+log-stat-payload2-output-sorted-gawk() { 
+ gawk -v paths=${paths} -v log_basename=$( basename ${log} .txt ) '
+BEGIN {
+ header=log_basename
+ data=paths
+}
+//{
+ data=data","$(1)
+ header=header","$(2)
+}
+END {
+ print header
+ print data
+}
+'
+}
+#-------------------------------------------------
+log-stat-payload2-output-sorted() { 
+ ## output sorted by path count
+ ## convert out to header data line
+ #echo testing ...
+ cat out \
+ | sort --numeric-sort --reverse \
+ | ${FUNCNAME}-gawk
+}
+#-------------------------------------------------
+log-stat-payload2-output() { 
+ local using
+ using="sorted"
+ case ${using} in
+  sorted) {
+   ${FUNCNAME}-sorted
+  } ;;
+ esac
+}
+#-------------------------------------------------
+log-stat-payload2-initialize() { 
+
+ ##-----------------------------------------------
+ ## initialize temp file
+ test ! -f "out" || {
+  rm out
+ }
+ ##-----------------------------------------------
+
+ { ## initialization
+   total=$( get-total-count )
+   header="total"
+   data="${total}"
+   sum=0
+   remaining=${total}
+   ##---------------------------------------------
+   ## add total to temp file
+   cat >> out << EOF
+${total} total
+EOF
+   ##---------------------------------------------
+ }
+
+}
+#-------------------------------------------------
+log-stat-payload2-for-each-path-do-setup() { 
+
+  path_line=$( print-path-line ${path} ${path_line_no} )
+  path_name=${paths}.$( car ${path_line} )
+  path_pattern=$( cdr ${path_line} )
+  path_count=$( get-path-count )
+
+  test "${path_pattern_previous}" && {
+   path_pattern_previous="${path_pattern_previous}\|\(${path_pattern}\)" 
+  true
+  } || {
+   path_pattern_previous="\(${path_pattern}\)" 
+  }
+}
+#-------------------------------------------------
+log-stat-payload2-for-each-path-do-if-count() {
+
+  test ${path_count} -eq 0 || {
+
+   path_name_simple="$( echo ${path_name} | cut '-f2-' '-d.' )"
+   header="${header},${path_name_simple}" 
+   data="${data},${path_count}"
+   sum=$(( ${sum} + ${path_count} ))
+   remaining=$(( ${remaining} - ${path_count} ))
+
+   ##---------------------------------------------
+   ## add path to temp file
+   cat >> out << EOF
+${path_count} ${path_name_simple}
+EOF
+   ##---------------------------------------------
+
+  }
+}
+#-------------------------------------------------
+log-stat-payload2-for-each-path-do-debug() { 
+ echo ${path_line} : ${path_name} : ${path_pattern} : ${path_count} : ${path_pattern_previous} 1>&2
+}
+#-------------------------------------------------
+log-stat-payload2-for-each-path-do-on-remaining() { 
+  echo remaining: ${remaining} 1>&2
+  test ! ${remaining} -eq 0 || {
+   break
+  }
+}
+#-------------------------------------------------
+log-stat-payload2-for-each-path-do() { 
+
+  {
+    local path_line
+    local path_name
+    local path_pattern
+    local path_count
+    local path_name_simple
+  }
+
+  ${FUNCNAME}-on-remaining
+  ${FUNCNAME}-setup
+  #${FUNCNAME}-debug
+  ${FUNCNAME}-if-count
+}
+#-------------------------------------------------
+log-stat-payload2-for-each-path() { 
+
+ local path_line_no
+ for path_line_no in $( get-path-line-range )
+ do 
+  ${FUNCNAME}-do
+ done
+}
+#-------------------------------------------------
+log-stat-payload2-special-paths() { 
+
+ ## post loop paths
+
+ ##-----------------------------------------------
+ ## get other path_count 
+ path_name=${paths}.other
+ path_name_simple="$( echo ${path_name} | cut '-f2-' '-d.' )"
+ path_count=$( get-path-count ) 
+ header="${header},${path_name_simple}"
+ data="${data},${path_count}"
+ sum=$(( ${sum} + ${path_count} ))  
+ remaining=$(( ${remaining} - ${path_count} ))
+ ##-----------------------------------------------
+
+ ##-----------------------------------------------
+ ## add path to temp file
+ cat >> out << EOF
+${path_count} ${path_name_simple}
+EOF
+ ##-----------------------------------------------
+
+ ##-----------------------------------------------
+ ## add sum
+ header="${header},sum"
+ data="${data},${sum}"
+ ##-----------------------------------------------
+
+}
+#-------------------------------------------------
+log-stat-payload2() { { local log ; log="${1}" ; }
+
+ { 
+   local sum
+   local total
+   local remaining
+   local header
+   local data
+ }
+
+ ${FUNCNAME}-initialize
+ ${FUNCNAME}-for-each-path
+ ${FUNCNAME}-special-paths
+ ${FUNCNAME}-output
+
 }
 #-------------------------------------------------
 combine-log-location() { { local log_location ; log_location="${1}" ; }
@@ -274,9 +410,11 @@ for-each-date() {
  test ! "${dates}" || {
   for date in ${dates}
   do
-   ## debug
-   #echo ${date}
+
+   ## debug date
+   #echo ${date} 
    #continue
+
    ## test if directory
    test ! -d "${date}" || {
     log="log.txt"
@@ -289,15 +427,18 @@ for-each-date() {
     #} > ${log}
     ## 0
     #cat ${date}/* > ${log}
-    ## debug
+
+    ## debug log
     {
       echo log.txt
       du log.txt 
       head -n 3 log.txt
     } 1>&2
-    ## debug\
+
+    ## debug log output
     #read
     #cat ${log}
+
     log-stat-for-log "${log}" "${paths}"
    }
    read
@@ -306,10 +447,12 @@ for-each-date() {
 }
 #-------------------------------------------------
 log-stat-for-date() { { local paths ; paths="${1-http}" ; local dates=${@:2} ; }
- ## debug
+
+ ## debug for date args
  #echo ${FUNCNAME}
  #echo paths: ${paths}
  #echo dates: ${dates}
+
  for-each-date
 }
 #-------------------------------------------------
@@ -331,7 +474,7 @@ log-stat-for-log-candidate-key() {
 log-stat-for-log() { { local log ; log="${1-log.txt}" ; local paths ; paths="${2-http}" ; } 
  ${FUNCNAME}-test
 
- ## debug
+ ## debug paths
  {
    get-paths ${paths}
  } 1>&2
