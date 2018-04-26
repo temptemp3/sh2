@@ -1,10 +1,7 @@
 #!/bin/bash
 ## log-stat
 ## - breakdown log by path
-## version 1.2.0 - sort output by path count
-## + break on empty other
-##	 + allow get path count loop to terminate if remaining paths is empty
-##		 + as in case of early hours
+## version 1.3.0 - report latency initial
 ## =to do=
 ## (6 Apr 2018)
 ## + allow path file comments
@@ -522,6 +519,49 @@ log-stat-combine-directory() {
    find ${log_location} -type f \
    | xargs cat 
  }
+}
+#-------------------------------------------------
+log-stat-get-latency-gawk() { 
+ gawk '
+BEGIN {
+ # latency(ms) sum
+ sum=0 
+}
+//{
+ ## floored
+ #sum+=(int($(6)*1000))
+ #
+ sum+=($(6)*1000)
+}
+END {
+ sum_sec=( sum / 1000 ) # converted back to seconds
+ avg_sec=( sum_sec / NR ) 
+
+ ## json
+ print "{"
+ print "\"sum\":" ( sum_sec ) ","
+ print "\"avg\":" ( avg_sec ) 
+ print "}"
+}
+'
+}
+#-------------------------------------------------
+log-stat-get-latency() { { local log ; log="${1}" ; }
+  _() {
+    test -f "${1}"
+    ## debug
+    #echo ${1}
+    #head -n 5 ${1}
+    cat ${1}
+  }
+  {
+    _ "${log_paths}/${log}" \
+    | ${FUNCNAME}-gawk
+  }
+}
+#-------------------------------------------------
+log-stat-get() {
+ commands
 }
 #-------------------------------------------------
 log-stat-combine() { { local log_location ; log_location="${1}" ; local log_output ; log_output=${2} ; }
