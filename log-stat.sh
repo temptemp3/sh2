@@ -1,7 +1,7 @@
 #!/bin/bash
 ## log-stat
 ## - breakdown log by path
-## version 1.3.0 - report latency initial
+## version 1.3.1 - report latency working
 ## =to do=
 ## (6 Apr 2018)
 ## + allow path file comments
@@ -13,7 +13,9 @@ error "true"			# show errors
 ##################################################
 . $( dirname ${0} )/cache.sh
 ##################################################
+shopt -s expand_aliases
 . $( dirname ${0} )/aliases/commands.sh
+alias sed-remove-double-quotes='sed -e "s/\"//g"'
 ##################################################
 range() { $( dirname ${0} )/range.sh ${@} ; }
 print-line() { $( dirname ${0} )/print-line.sh ${@} ; }
@@ -222,14 +224,20 @@ log-stat-payload2-output-sorted-gawk() {
 BEGIN {
  header=log_basename
  data=paths
+ data2="latency-sum"
+ data3="latency-avg"
 }
 //{
- data=data","$(1)
  header=header","$(2)
+ data=data","$(1)
+ data2=data2","$(3)
+ data3=data3","$(4)
 }
 END {
  print header
  print data
+ print data2
+ print data3
 }
 '
 }
@@ -268,10 +276,16 @@ log-stat-payload2-initialize() {
    data="${total}"
    sum=0
    remaining=${total}
+
+   #{ # get latency
+   #  local latency
+   #  latency=$( get-latency )
+   #}
+
    ##---------------------------------------------
    ## add total to temp file
    cat >> out << EOF
-${total} total
+${total} total - -
 EOF
    ##---------------------------------------------
  }
@@ -296,6 +310,13 @@ log-stat-payload2-for-each-path-do-setup() {
 log-stat-payload2-for-each-path-do-if-count() {
 
   test ${path_count} -eq 0 || {
+   
+   { # get latency
+     local log
+     log="log.${path_name}.txt"
+     local latency
+     latency=$( get-latency )
+   }
 
    path_name_simple="$( echo ${path_name} | cut '-f2-' '-d.' )"
    header="${header},${path_name_simple}" 
@@ -306,7 +327,7 @@ log-stat-payload2-for-each-path-do-if-count() {
    ##---------------------------------------------
    ## add path to temp file
    cat >> out << EOF
-${path_count} ${path_name_simple}
+${path_count} ${path_name_simple} $( latency-sum ${latency} ) $( latency-avg ${latency} )
 EOF
    ##---------------------------------------------
 
@@ -367,7 +388,7 @@ log-stat-payload2-special-paths() {
  ##-----------------------------------------------
  ## add path to temp file
  cat >> out << EOF
-${path_count} ${path_name_simple}
+${path_count} ${path_name_simple} - -
 EOF
  ##-----------------------------------------------
 
@@ -521,7 +542,7 @@ log-stat-combine-directory() {
  }
 }
 #-------------------------------------------------
-log-stat-get-latency-gawk() { 
+get-latency-gawk() { 
  gawk '
 BEGIN {
  # latency(ms) sum
@@ -546,7 +567,24 @@ END {
 '
 }
 #-------------------------------------------------
-log-stat-get-latency() { { local log ; log="${1}" ; }
+get-latency-gawk2() { 
+ gawk '
+//{
+ print "{" "\"ts\":" "\"" $(1) "\"" "," "\"lat\":" $(6) "}"
+}
+'
+}
+#-------------------------------------------------
+latency-avg() { { local json ; json=${@} ; }
+ echo ${json} | jq '.avg'
+}
+#-------------------------------------------------
+latency-sum() { { local json ; json=${@} ; }
+ echo ${json} | jq '.sum'
+}
+#-------------------------------------------------
+get-latency() { 
+  test "${log}"
   _() {
     test -f "${1}"
     ## debug
@@ -554,10 +592,35 @@ log-stat-get-latency() { { local log ; log="${1}" ; }
     #head -n 5 ${1}
     cat ${1}
   }
-  {
-    _ "${log_paths}/${log}" \
-    | ${FUNCNAME}-gawk
+  { 
+
+    ## return sum avg
+    # =sample output=
+    #{
+    #	"sum":1051.44,
+    #	"avg":0.134938
+    #}
+    _ "${log_paths}/${log}" | ${FUNCNAME}-gawk 
+
+    return
+
+    ## list ts_lat
+    local ts_raw
+    local lat_raw
+    for ts_lat in $( _ "${log_paths}/${log}" | ${FUNCNAME}-gawk2 )
+    do
+     #echo ${ts_lat}
+     ts_raw=$( echo ${ts_lat} | jq '.ts' | sed-remove-double-quotes )
+     #echo ${ts_raw}
+     lat_raw=$( echo ${ts_lat} | jq '.lat' )
+     echo "${lat_raw} $( date --date=${ts_raw} +%X )" &
+    done
+    wait
   }
+}
+#-------------------------------------------------
+log-stat-get-latency() { { local log ; log="${1}" ; }
+ get-latency
 }
 #-------------------------------------------------
 log-stat-get() {
