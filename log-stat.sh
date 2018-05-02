@@ -1,7 +1,7 @@
 #!/bin/bash
 ## log-stat
 ## - breakdown log by path
-## version 1.3.1 - report latency working
+## version 1.3.2 - report total and other latency
 ## =to do=
 ## (6 Apr 2018)
 ## + allow path file comments
@@ -277,15 +277,15 @@ log-stat-payload2-initialize() {
    sum=0
    remaining=${total}
 
-   #{ # get latency
-   #  local latency
-   #  latency=$( get-latency )
-   #}
+   {
+     local latency
+     get-latency-using-log-basename
+   }
 
    ##---------------------------------------------
    ## add total to temp file
    cat >> out << EOF
-${total} total - -
+${total} total $( latency-sum ${latency} ) $( latency-avg ${latency} )
 EOF
    ##---------------------------------------------
  }
@@ -310,12 +310,10 @@ log-stat-payload2-for-each-path-do-setup() {
 log-stat-payload2-for-each-path-do-if-count() {
 
   test ${path_count} -eq 0 || {
-   
-   { # get latency
-     local log
-     log="log.${path_name}.txt"
+ 
+   {
      local latency
-     latency=$( get-latency )
+     get-latency-using-path-name
    }
 
    path_name_simple="$( echo ${path_name} | cut '-f2-' '-d.' )"
@@ -385,10 +383,15 @@ log-stat-payload2-special-paths() {
  remaining=$(( ${remaining} - ${path_count} ))
  ##-----------------------------------------------
 
+ {
+   local latency
+   get-latency-using-path-name   
+ }
+
  ##-----------------------------------------------
  ## add path to temp file
  cat >> out << EOF
-${path_count} ${path_name_simple} - -
+${path_count} ${path_name_simple} $( latency-sum ${latency} ) $( latency-avg ${latency} )
 EOF
  ##-----------------------------------------------
 
@@ -401,6 +404,9 @@ EOF
 }
 #-------------------------------------------------
 log-stat-payload2() { { local log ; log="${1}" ; }
+ 
+ #echo log: ${log} 1>&2
+
 
  { 
    local sum
@@ -498,6 +504,12 @@ log-stat-for-log() { { local log ; log="${1-log.txt}" ; local paths ; paths="${2
  } 1>&2
 
 
+ ## debug
+ #set -v -x
+ #echo ${cache}/$( ${FUNCNAME}-candidate-key )
+ #set +v +x
+ #read
+
  #echo running log stat for log ${log} using ${paths} .. 1>&2
  {
    #cache \
@@ -556,7 +568,12 @@ BEGIN {
 }
 END {
  sum_sec=( sum / 1000 ) # converted back to seconds
- avg_sec=( sum_sec / NR ) 
+
+ if(NR!=0) { # prevent divide by zero error
+  avg_sec=( sum_sec / NR ) 
+ } else {
+  avg_sec=0
+ }
 
  ## json
  print "{"
@@ -583,7 +600,19 @@ latency-sum() { { local json ; json=${@} ; }
  echo ${json} | jq '.sum'
 }
 #-------------------------------------------------
-get-latency() { 
+get-latency-using-path-name() {
+ latency=$( 
+  get-latency "log.${path_name}.txt"
+ )
+}
+get-latency-using-log-basename() {
+ latency=$( 
+   get-latency $(
+    basename ${log}
+   )
+  )
+}
+get-latency() { { local log ; log="${1}" ; }
   test "${log}"
   _() {
     test -f "${1}"
@@ -620,7 +649,7 @@ get-latency() {
 }
 #-------------------------------------------------
 log-stat-get-latency() { { local log ; log="${1}" ; }
- get-latency
+ get-latency ${log}
 }
 #-------------------------------------------------
 log-stat-get() {
@@ -653,8 +682,16 @@ log-stat-initialize-log-paths() {
  }
 }
 #-------------------------------------------------
+cache_ts=
+log-stat-initialize-cache-ts() { 
+ cache_ts=$(
+  date +%s | sed -e 's/.\{5\}$/00000/'
+ )
+}
+#-------------------------------------------------
 log-stat-initialize() { 
  ${FUNCNAME}-log-paths
+ ${FUNCNAME}-cache-ts
 }
 #-------------------------------------------------
 log-stat() { 
