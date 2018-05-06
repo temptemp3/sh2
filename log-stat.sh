@@ -1,7 +1,7 @@
 #!/bin/bash
 ## log-stat
 ## - breakdown log by path
-## version 1.3.2 - report total and other latency
+## version 1.3.3 - silence combine log message
 ## =to do=
 ## (6 Apr 2018)
 ## + allow path file comments
@@ -547,7 +547,7 @@ log-stat-combine-directory() {
   error "directory '${log_location}' does not exist" "${FUNCNAME}" "${LINENO}"
   false
  }
- echo "combining log files at location '${log_location}'" 1>&2
+ #echo "combining log files at location '${log_location}'" 1>&2
  {
    find ${log_location} -type f \
    | xargs cat 
