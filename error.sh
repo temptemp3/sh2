@@ -1,7 +1,7 @@
 #!/bin/bash
 ## error
 ## =standalone=
-## version: 2.0.6 - sh2 initial
+## version: 2.1.0 - error-default hide errors
 #####################################################################################
 { # error handling
 
@@ -62,7 +62,9 @@ EOF
 $( _date ) ${0} $( if-message )
 error in $( if-function-name ) $( if-line-number )
 EOF
-    echo $( tail -n 2 error-log ) 1>&2 # stdout to stderr
+     {
+      echo $( tail -n 2 error-log ) 
+     } 1>&2 # stdout to stderr
    }
   }
   test ! "${function_name}" = "" && {
@@ -74,7 +76,7 @@ EOF
   }
   _finally ; _cleanup ;
  }
- error "false" # default
+ error "false" # hide errors
  trap '_exit "${FUNCNAME}" "${LINENO}"' EXIT ERR
 }
-#####################################################################################
+####################################################################################
