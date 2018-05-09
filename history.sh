@@ -1,11 +1,29 @@
 #!/bin/bash
 ## history
 ## - easier to use history command
-## version 0.0.2 - grep initial
+## version 0.0.3 - execute-patterns
+## to do:
+## - only show real history line numbers
 ##################################################
+. $( dirname ${0} )/error.sh
+_cleanup() {
+ _() {
+   {
+     test ! -f "${1}" || {
+       cecho yellow $( rm -v ${1} ) 
+     }
+   } &>/dev/null 
+ }
+ _ "temp-history-1"
+ _ "temp-history-2"
+}
+#-------------------------------------------------
+. $( dirname ${0} )/aliases/commands.sh
+#-------------------------------------------------
+cecho() { $( dirname ${0} )/cecho.sh ${@} ; }
 car() { $( dirname ${0} )/car.sh ${@} ; }
 cdr() { $( dirname ${0} )/cdr.sh ${@} ; }
-. $( dirname ${0} )/aliases/commands.sh
+#-------------------------------------------------
 ## testing (1)
 _history-grep-for-each-pattern-do() { #{ local patterns ; patterns=${@} ; }
  echo -n "| grep "
@@ -22,25 +40,61 @@ _history-grep-for-each-pattern() { #{ local patterns ; patterns=${@} ; }
    done 
  } | sed '1s/^.//'
 }
+_history-grep-setup-patterns() { 
+ pattern=$( car ${patterns} )
+ cecho yellow pattern: ${pattern}
+ cecho yellow patterns: ${patterns}
+ patterns=$( cdr ${patterns} || true )
+}
+_history-grep-execute-patterns() { 
+  cecho green in ${FUNCNAME}
+
+  {
+    {
+      gawk -e "/${pattern}/{print NR \" \" \$(0)}" temp-history-1
+    } | tee temp-history-2 
+  } 1>&2
+  cecho yellow $( cp -v temp-history-2 temp-history-1 )
+}
 _history-grep() { { local patterns ; patterns=${@} ; } 
-　## testing (1)
+  ## testing (1)
   #echo $( ${FUNCNAME}-for-each-pattern ) 
   #return 
-  { 
-    {
-      cat ~/.bash_history 
-    } \
-    | gawk '{print NR " " $(0)}' \
-    | grep -e "${patterns}" 
-  }
+  #{ 
+  #  {
+  #    cat ~/.bash_history 
+  #  } \
+  #  | gawk '{print NR " " $(0)}' \
+  #  | grep -e "${patterns}" 
+  #}
+
+  cecho yellow $( cp -v  ~/.bash_history temp-history-1 )
+  cecho yellow $( cp -v  temp-history-1 temp-history-2 )
+  {
+    tail temp-history-1 
+  } 1>&2
+
+  local pattern 
+  while [ ! ]
+  do
+   test "${patterns}" || { break ; }
+   ${FUNCNAME}-setup-patterns
+   ${FUNCNAME}-execute-patterns
+   continue
+  done
+
+  cat temp-history-1
+
 }
 _history-last() { { local patterns ; patterns=${@} ; } 
   {
-    _history-grep "${patterns}"
+    _history-grep ${patterns}
   } | sed -n '$p'
 }
-_history() {
- commands
+_history() {  
+  {
+    commands 
+  } 2>/dev/null
 }
 ##################################################
 if [ ! ] 

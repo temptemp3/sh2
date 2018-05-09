@@ -21,7 +21,9 @@ cecho-color() { #{ local candidate_color ; candidate_color="${1}" ; }
 }
 #-------------------------------------------------
 cecho() { { local candidate_color ; candidate_color="${1}" ; local line ; line=${@:2} ; }
- echo -e "\e[$( ${FUNCNAME}-color )m ${line} \e[0m" 1>&2
+  {
+    echo -e "\e[$( ${FUNCNAME}-color )m ${line} \e[0m" 
+  } 1>&2
 }
 ##################################################
 if [ ! ] 
