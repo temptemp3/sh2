@@ -2,8 +2,6 @@
 ## u2.sh - update hwip, error, imports, temp, charset
 ## version 0.2.7b - no manual breaks
 ##################################################
-set -v -x
-##################################################
 ## get bloginfo
 test ! -f "bloginfo" || {
  rm bloginfo
@@ -16,14 +14,16 @@ do
  } |  tee -a bloginfo &>/dev/null
 done
 ##################################################
-. ${SH2}/error.sh 	# error handling
+. ${SH2}/error.sh 		# error handling
+. ${SH2}/aliases/commands.sh 	# commands
 ##################################################
 file_mime_encoding() { ${SH2}/file-mime-encoding.sh ${@} ; }
 generate_temp() { ${SH}/generate-temp.sh ${@} ; }
 markdown() { ${SH}/markdown.sh ${@} 2>/dev/null ; }
+cecho() { ${SH2}/cecho.sh ${@} ; }
 ##################################################
 _cleanup() { 
- rm navigation* --verbose || true
+ #rm navigation* --verbose || true
  test ! "${temp}" || {
   rm ${temp}* -rvf
  }
@@ -433,25 +433,33 @@ file-error-404() {
  }
 }
 #-------------------------------------------------
+file-convert-to-html-mime-encoding-utf8() {
+ #-----------------------------------------------
+ # convert all doc html to utf-8 
+ #-----------------------------------------------
+ {
+   {
+     ${candidate_theme} \
+     ${file} \
+     "bloginfo" \
+     ${navigation} 
+   } > ${temp}-$( file-basename ).html
+   {
+     iconv \
+     -f $( file_mime_encoding ${file} ) \
+     -t utf-8 \
+     ${temp}-$( file-basename ).html 
+   } | tee html/$( file-basename ).html 
+ }
+ #-----------------------------------------------
+}
+#-------------------------------------------------
 file-convert-to-html() {
- echo generating html for $( basename ${file} ) ... 1>&2
+ cecho green generating html for $( basename ${file} )
  local candidate_theme
  candidate_theme="theme/${theme}/doc-html.sh"
  test ! -f "${candidate_theme}" || {
-
-  
-  #-----------------------------------------------
-  #
-  # convert all doc html to utf-8 
-  #
-  ${candidate_theme} ${file} "bloginfo" ${navigation} > ${temp}-$( file-basename).html
-  iconv \
-  -f $( file_mime_encoding ${file} ) \
-  -t utf-8 \
-  ${temp}-$( file-basename).html \
-  | tee html/$( file-basename ).html 
-  #-----------------------------------------------
-
+  ${FUNCNAME}-mime-encoding-utf8
  }
 }
 #-------------------------------------------------
@@ -506,69 +514,81 @@ EOF
  #read
 }
 #-------------------------------------------------
-u2-list() {
-
-
+list() {
+ #------------------------------------------------
+ # initialize temp and directories
+ #------------------------------------------------
  initialize
-
- #read
-
+ #------------------------------------------------
  #echo manual break 1>&2
  #echo ${categories}
  #exit
-
+ #------------------------------------------------
  get-files # ${files}
- 
  #echo "files: ${files}"
  #read
-
+ #------------------------------------------------
  # output encoding for all files
  for-each-file get-mime-encoding 
  # manual break
  #read 
-
+ #------------------------------------------------
  #echo ${files}
  #echo manual break ; false ;
-
+ #------------------------------------------------
  get-files-hidden # ${files_hidden}
  start-prompt
-
+ #------------------------------------------------
  #echo manual break 1>&2
  #exit
-
- generate-navigation # ${navigation}
- for-each-file convert-to-html # > *.html
-
+ #------------------------------------------------
+ { # ${navigation}
+   generate-navigation
+ }
+ { # > *.html
+   for-each-file \
+   convert-to-html 
+ }
+ #------------------------------------------------
  # manual break
  #read
-
- for-each-file error-404 hidden
  #------------------------------------------------
- ## sync css
- false || {
-  cp -rvf css html/
+ [ ! ] || {
+   for-each-file \
+   error-404 hidden
+ }
+ #------------------------------------------------
+ # sync css
+ #------------------------------------------------
+ {
+   cp -rvf css html/
  }
  #------------------------------------------------
  #_cleanup
+ #------------------------------------------------
 }
 #-------------------------------------------------
-u2-prompt() {
+prompt() {
  echo press any key to continue
  # manual break
- #read
+ read
+}
+#-------------------------------------------------
+u2-build() {
+ #prompt
+ list
 }
 #-------------------------------------------------
 u2() { 
- u2-prompt
- u2-list
+ commands
 }
 ##################################################
-if [ ${#} -eq 0 ] 
+if [ ! ] 
 then
  true
 else
  exit 1 # wrong args
 fi
 ##################################################
-u2
+u2 ${@}
 ##################################################
