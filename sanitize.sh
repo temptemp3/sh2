@@ -17,8 +17,5 @@ else
  exit 1 # wrong args
 fi
 ##################################################
-{
-  echo testing sanitization ... 
-  echo "sanitize test 1 2 3 4 a B c d = '$( sanitize test 1 2 3 4 a B c d )'" 
-} 1>&2
+sanitize ${@}
 ##################################################
