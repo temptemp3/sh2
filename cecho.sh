@@ -21,9 +21,16 @@ cecho-color() { #{ local candidate_color ; candidate_color="${1}" ; }
 }
 #-------------------------------------------------
 cecho() { { local candidate_color ; candidate_color="${1}" ; local line ; line=${@:2} ; }
-  {
+ {
+  case ${candidate_color} in
+   inherit) {
+    echo -e "${line}"
+   } ;; 
+   *) {
     echo -e "\e[$( ${FUNCNAME}-color )m ${line} \e[0m" 
-  } 1>&2
+   }
+  esac
+ } 1>&2
 }
 ##################################################
 if [ ! ] 
