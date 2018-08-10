@@ -44,7 +44,7 @@ getops() {
     continue
    } ;;
    -*) {
-    on-shortops ${@} 1>/dev/null
+    on-shortops ${@} &>/dev/null
     shift $( on-shortops ${@} )
     continue
    } ;; 

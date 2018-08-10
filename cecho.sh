@@ -1,7 +1,7 @@
 #!/bin/bash
 ## cecho
 ## - color echo
-## version 0.0.0 - initial, cm-echo export
+## version 0.0.1 - no entry for source
 ##################################################
 cecho-color() { #{ local candidate_color ; candidate_color="${1}" ; }
  case ${candidate_color} in
@@ -20,7 +20,7 @@ cecho-color() { #{ local candidate_color ; candidate_color="${1}" ; }
  esac
 }
 #-------------------------------------------------
-cecho() { { local candidate_color ; candidate_color="${1}" ; local line ; line=${@:2} ; }
+cecho() { { local candidate_color ; candidate_color="${1}" ; local line ; line="${@:2}" ; }
  {
   case ${candidate_color} in
    inherit) {
@@ -33,12 +33,12 @@ cecho() { { local candidate_color ; candidate_color="${1}" ; local line ; line=$
  } 1>&2
 }
 ##################################################
-if [ ! ] 
-then
- true
-else
- exit 1 # wrong args
-fi
+#if [ ! ] 
+#then
+# true
+#else
+# exit 1 # wrong args
+#fi
 ##################################################
-cecho ${@}
+#cecho ${@}
 ##################################################
