@@ -1,6 +1,6 @@
 #!/bin/bash
 ## getops
-## version 0.0.1 - initial
+## version 0.0.2 - nocompound shortop
 ##################################################
 on-shortops-case() {
  case ${1} in
@@ -15,17 +15,8 @@ on-shortops-case() {
  esac
 }
 #-------------------------------------------------
-on-shortops() {
- str_length() { { local str ; str=${@} ; }
-  echo ${str} | wc -c
- }
- #echo ${1} 1>&2
- local i
- for i in $( range $(( $( str_length ${1:1} ) - 1 )) )
- do
-  #echo ${1:${i}:1} 1>&2
-  ${FUNCNAME}-case ${1:${i}:1} ${2}
- done
+on-shortops() { 
+ ${FUNCNAME}-case ${1:1:1} ${@:2}
 }
 #-------------------------------------------------
 on-longops() {
