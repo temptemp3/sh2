@@ -12,3 +12,14 @@ just some bash scripts for log analysis and much more
   source commands
 }
 ```
+
+**commands2**
+
+```
+. ${SH2}/commands2.sh
+foo-subcommand() { ... }
+foo() { 
+ commands2 ${FUNCNAME} ${@}
+}
+```
+
