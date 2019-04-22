@@ -1,7 +1,7 @@
 #!/bin/bash
 ## cecho
 ## - color echo
-## version 0.0.0 - initial, cm-echo export
+## version 0.0.1 - mute on absent line
 ##################################################
 cecho-color() { #{ local candidate_color ; candidate_color="${1}" ; }
  case ${candidate_color} in
@@ -21,7 +21,7 @@ cecho-color() { #{ local candidate_color ; candidate_color="${1}" ; }
 }
 #-------------------------------------------------
 cecho() { { local candidate_color ; candidate_color="${1}" ; local line ; line=${@:2} ; }
-  {
+  test ! "${line}" || {
     echo -e "\e[$( ${FUNCNAME}-color )m ${line} \e[0m" 
   } 1>&2
 }

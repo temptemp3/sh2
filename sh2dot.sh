@@ -2,10 +2,8 @@
 ## sh2dot - generates dot from sh
 ## version 0.0.3 - wip
 ##################################################
-. ${SH}/core.sh
-attr function_def_lines
-attr function_list
-attr dot_expression
+. ${SH2}/aliases/commands.sh
+. ${SH2}/cecho.sh
 ##################################################
 get_lines() { ${SH}/get-lines.sh ${@} ; }
 print_line() { ${SH}/print-line.sh ${@} ; }
@@ -203,17 +201,25 @@ sh2dot-list() {
  dot
 }
 #-------------------------------------------------
+sh2dot-testing() {
+ true
+}
+#-------------------------------------------------
+sh2dot-initialize() { 
+ cecho green initializing ...
+}
+#-------------------------------------------------
 sh2dot() { 
- sh2dot-list
+ ${FUNCNAME}-initialize
+ commands
 }
 ##################################################
-## $1 - file name
-if [ ${#} -eq 1 -a -f ${1} ] 
+if [ ! ]
 then
- infile="${1}"
+ true
 else
  exit 1 # wrong args
 fi
 ##################################################
-sh2dot
+sh2dot ${@}
 ##################################################

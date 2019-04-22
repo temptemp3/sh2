@@ -1,14 +1,14 @@
 #!/bin/bash
 ## error
 ## =standalone=
-## version: 2.0.6 - sh2 initial
+## version: 2.0.7 - revise date format
 #####################################################################################
 { # error handling
 
  set -e # exit on error
 
  date_offset=0 # may depreciate later
- _date() {   _() { echo "date" ; } ;  __() { echo "--$( _ )=@$(( $( $( _ ) +%s ) + ${date_offset} ))" ; } ;  ___() { echo "+%y%m%d %H%M" ; } ;  "$( _ )" "$( __ )" "$( ___ )" ; }  
+ _date() {   _() { echo "date" ; } ;  __() { echo "--$( _ )=@$(( $( $( _ ) +%s ) + ${date_offset} ))" ; } ;  ___() { echo "+%y%m%dT%H%M" ; } ;  "$( _ )" "$( __ )" "$( ___ )" ; }  
  _finally() { true ; }
  _cleanup() { true ; }
  _on_error() { true ; }

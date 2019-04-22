@@ -6,7 +6,7 @@
 shopt -s expand_aliases
 alias sed-sanitize='sed -e "s/[^a-zA-Z0-9]//g"'
 sanitize() { 
- echo "${@}" \
+ echo "${@,,}" \
  | sed-sanitize
 }
 ##################################################

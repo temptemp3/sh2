@@ -1,6 +1,6 @@
 #!/bin/bash
 ## diff-http-https-path.sh
-## - diff protocoal path request response
+## - diff protocol path request response
 ## version 0.2.1 - wip curl ua-device iphone
 ##################################################
 set -e # exit on error

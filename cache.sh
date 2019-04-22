@@ -1,7 +1,7 @@
 #!/bin/bash
 ## cache
 ## - simple lazy caching
-## version 0.0.1 - initial
+## version 0.0.2 - allow cache dir override
 ##################################################
 shopt -s expand_aliases	# enable alias expansion
 alias cache-generic-payload='
@@ -10,7 +10,9 @@ alias cache-generic-payload='
 }
 '
 ##################################################
-cache="$( dirname ${0} )/cache"
+test "${cache}" || {
+  cache="$( dirname ${0} )/cache"
+}
 cache() { { local candidate_key ; candidate_key="${1}" ; local function_name ; function_name="${2}" ; }
 
   {
@@ -37,7 +39,7 @@ _() {
  echo Created $( date )
 }
 cache \
-"$( dirname ${0} )/cache-test" \
+"${cache}/cache-test" \
 "_" \
 &>/dev/null
 ##################################################
