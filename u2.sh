@@ -1,6 +1,6 @@
 #!/bin/bash
 ## u2.sh - update hwip, error, imports, temp, charset
-## version 0.2.7b - no manual breaks
+## version 0.3.0 - true
 ##################################################
 ## get bloginfo
 test ! -f "bloginfo" || {
@@ -16,11 +16,11 @@ done
 ##################################################
 . ${SH2}/error.sh 		# error handling
 . ${SH2}/aliases/commands.sh 	# commands
+. ${SH2}/cecho.sh		# colored echo
 ##################################################
 file_mime_encoding() { ${SH2}/file-mime-encoding.sh ${@} ; }
 generate_temp() { ${SH}/generate-temp.sh ${@} ; }
 markdown() { ${SH}/markdown.sh ${@} 2>/dev/null ; }
-cecho() { ${SH2}/cecho.sh ${@} ; }
 ##################################################
 _cleanup() { 
  #rm navigation* --verbose || true
@@ -235,7 +235,7 @@ get-untracked-files() {
  grep \
   -e 'docs' |
  grep -v \
-  -e 'html' \
+  -e '[.]html$' \
   -e '\/[.]'
 }
 #-------------------------------------------------
@@ -330,10 +330,14 @@ get-files-hidden() {
 #-------------------------------------------------
 get-files() { 
  get-files-default-behavior
- get-files-filter
+ cecho yellow "files (prefilter): ${files}"	# prefilter files
+ cecho yellow $( echo "${files}" | wc )		# wc files
+ get-files-filter 				# filter files
  #get-files-fallback
  #get-files-output
- echo files: ${files}
+ cecho yellow "files (final): ${files}"		# final files
+ cecho yellow $( echo "${files}" | wc )		# wc files
+ echo "${files}"
 }
 #get-files
 #exit
@@ -493,9 +497,11 @@ initialize-directories() {
 #-------------------------------------------------
 temp=
 initialize-temp() {
- temp=$(
-  generate_temp $( basename ${0} .sh )
- )
+  temp=$(
+    generate_temp $( basename ${0} .sh )
+  )
+  cecho yellow "temp: ${temp}"
+  sleep 1
 }
 #-------------------------------------------------
 initialize() {
@@ -579,8 +585,12 @@ u2-build() {
  list
 }
 #-------------------------------------------------
+u2-true() { 
+  true
+}
+#-------------------------------------------------
 u2() { 
- commands
+  commands
 }
 ##################################################
 if [ ! ] 
