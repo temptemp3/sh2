@@ -1,6 +1,6 @@
 #!/bin/bash
 ## u2.sh - update hwip, error, imports, temp, charset
-## version 0.3.0 - true
+## version 0.3.1 - u2 build commands initial, hugo
 ##################################################
 ## get bloginfo
 test ! -f "bloginfo" || {
@@ -580,9 +580,17 @@ prompt() {
  read
 }
 #-------------------------------------------------
+u2-build-html() {
+  #prompt
+  list
+}
+#-------------------------------------------------
+u2-build-hugo() {
+  true # not yet implemented 
+}
+#-------------------------------------------------
 u2-build() {
- #prompt
- list
+  commands
 }
 #-------------------------------------------------
 u2-true() { 
