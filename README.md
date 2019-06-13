@@ -24,3 +24,8 @@ foo() {
 ```
 
 **log-stat**
+
+```
+USAGE
+  log-stat for log relative/path/to/log/in/log-paths path-name
+```
