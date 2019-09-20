@@ -1,10 +1,13 @@
 #!/bin/bash
 ## cecho
 ## - color echo
-## version 0.0.2 - remove entry
+## version 0.1.0 - add color magenta as pink
 ##################################################
 cecho-color() { #{ local candidate_color ; candidate_color="${1}" ; }
  case ${candidate_color} in
+  pink) {
+   echo 35
+  } ;;
   blue) {
    echo 34 
   } ;;
