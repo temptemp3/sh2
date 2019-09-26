@@ -1,10 +1,10 @@
 #!/bin/bash
 ## build
-## version 0.0.1 - initial
+## version 0.0.2 - build single
 ##################################################
 build() {
   local outfile
-  outfile="${build}/$( basename ${0} .sh )-$( date +%y%m%dT%H%M ).sh"
+  outfile="${build}/$( basename ${0} .sh )"
   cecho green "building standalone ..."
   ################################################
   ## 1.  cleanup build (creates empty build dir)
@@ -27,7 +27,7 @@ build() {
   { # resolve source lines
     bash -vp ${0} true 2>&1 | 
     grep -v -e '^\s*[.]\s\+' 
-  } | tee ${outfile}
+  } | tee ${outfile}.sh
   ################################################
   cecho green "standalone built"
 }
