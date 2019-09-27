@@ -1,6 +1,7 @@
 #!/bin/bash
 ## build
-## version 0.0.2 - build single
+## - builds a copy of script with resolved . lines
+## version 0.0.3 - obfuscate output
 ##################################################
 build() {
   local outfile
@@ -28,6 +29,13 @@ build() {
     bash -vp ${0} true 2>&1 | 
     grep -v -e '^\s*[.]\s\+' 
   } | tee ${outfile}.sh
+  ################################################
+  ## obfuscate output to prevent easy tampering
+  ################################################
+  test ! $( which bash-obfuscate 2>/dev/null ) || {
+    bash-obfuscate ${outfile}.sh > ${outfile}.sh-temp
+    mv -v ${outfile}.sh{-temp,}
+  }
   ################################################
   cecho green "standalone built"
 }
