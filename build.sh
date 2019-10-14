@@ -1,7 +1,7 @@
 #!/bin/bash
 ## build
 ## - builds a copy of script with resolved . lines
-## version 0.0.3 - obfuscate output
+## version 0.0.4 - if output enabled obfuscate
 ##################################################
 build() {
   local outfile
@@ -32,9 +32,11 @@ build() {
   ################################################
   ## obfuscate output to prevent easy tampering
   ################################################
-  test ! $( which bash-obfuscate 2>/dev/null ) || {
-    bash-obfuscate ${outfile}.sh > ${outfile}.sh-temp
-    mv -v ${outfile}.sh{-temp,}
+  test ! "${do_obfuscate}" || {
+    test ! $( which bash-obfuscate 2>/dev/null ) || {
+      bash-obfuscate ${outfile}.sh > ${outfile}.sh-temp
+      mv -v ${outfile}.sh{-temp,}
+    }
   }
   ################################################
   cecho green "standalone built"
