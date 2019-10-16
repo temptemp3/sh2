@@ -1,6 +1,6 @@
 #!/bin/bash
 ## store
-## version 0.0.1 - initial
+## version 0.0.2 - implement set-get functions
 #################################################
 shopt -s expand_aliases
 alias init-store='
@@ -31,11 +31,11 @@ store-persist() {
   store[run]=$(( store[run] + 1 ))
   declare -p store | tee $( basename ${0} .sh )-store &>/dev/null
 }
-store-set() {
-  true
+store-set() { { local key ; key="${1}" ; local value ; value="${@:2}" ; }
+  store[${key}]=${value}  
 }
-store-get() {
-  true
+store-get() { { local key ; key="${1}" ; }
+  echo "${store[${key}]}"
 }
 store() {
   commands
