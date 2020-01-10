@@ -15,7 +15,8 @@ just some bash scripts for log analysis and much more
 
 **store**
 
-requires cecho.sh
++ requires cecho.sh
++ may not be in main branch
 
 ```
 . ${SH2}/store.sh
