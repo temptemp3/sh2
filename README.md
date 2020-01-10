@@ -13,6 +13,16 @@ just some bash scripts for log analysis and much more
 }
 ```
 
+**store**
+
+requires cecho.sh
+
+```
+. ${SH2}/store.sh
+store set ...
+store persist
+```
+
 **commands2**
 
 ```
