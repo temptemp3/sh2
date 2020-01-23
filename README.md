@@ -7,7 +7,7 @@ just some bash scripts for log analysis and much more
 
 ```
 {
-  git clone https://github.com/temptemp3/sh2.git -b 190717
+  git clone https://github.com/temptemp3/sh2.git
   find sh2 -type f -name \*.sh | xargs chmod +x
   echo "declare -x SH2=$( realpath sh2 )" >> commands
   source commands
@@ -41,3 +41,8 @@ foo() {
 USAGE
   log-stat for log relative/path/to/log/in/log-paths path-name
 ```
+
+**changelog**
+
++ 23 Jan 2020 - use master branch in quickstart
+
