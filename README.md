@@ -3,7 +3,7 @@
 just some bash scripts for log analysis and much more
 
 
-**quickstart**
+## quickstart
 
 ```
 {
@@ -14,7 +14,7 @@ just some bash scripts for log analysis and much more
 }
 ```
 
-**store**
+## store
 
 + requires cecho.sh
 + may not be in main branch
@@ -25,7 +25,7 @@ store set ...
 store persist
 ```
 
-**commands2**
+## commands2
 
 ```
 . ${SH2}/commands2.sh
@@ -35,14 +35,14 @@ foo() {
 }
 ```
 
-**log-stat**
+## log-stat
 
 ```
 USAGE
   log-stat for log relative/path/to/log/in/log-paths path-name
 ```
 
-**changelog**
+## changelog
 
 + 23 Jan 2020 - use master branch in quickstart
 
