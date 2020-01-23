@@ -1,6 +1,6 @@
 #!/bin/bash
 ## store
-## version 0.0.2 - implement set-get functions
+## version 0.0.3 - use source instead of .
 #################################################
 shopt -s expand_aliases
 alias init-store='
@@ -8,7 +8,7 @@ alias init-store='
   test ! -f "$( basename ${0} .sh )-store" && {
     touch ${_}
   } || {
-    . ${_}
+    source ${_}
     cecho green "loading store ..."
     sleep 1
     cecho green "done loading store"
