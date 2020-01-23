@@ -1,6 +1,6 @@
 #!/bin/bash
 ## worker
-## version 0.0.1 - initial
+## version 0.0.2 - work without xxd command
 ##################################################
 worker() { { local infile ; infile="${1}" ; local -i concurrency ; concurrency="${2-1}" ; }
   if-concurrency() {
@@ -9,13 +9,17 @@ worker() { { local infile ; infile="${1}" ; local -i concurrency ; concurrency="
       cecho yellow "concurrency: ${concurrency}"
     }
   }
+  ## may depreciate
+  #hex-replace() { 
+  #  cat - \
+  #  xxd -ps | 
+  #  sed 's/0a/00/g' | 
+  #  xxd -ps -r 
+  #}
   cecho green "doing work on $( cat ${infile} | wc -l ) jobs ..."
   time { 
-    cat ${infile} | 
-    xxd -ps | 
-    sed 's/0a/00/g' | 
-    xxd -ps -r | 
-    xargs $( if-concurrency ) -0 -i bash ${0} {}
+    cat ${infile} \
+    | xargs $( if-concurrency ) -i bash ${0} {}
   }
   cecho green "done doing work"
 }
