@@ -1,7 +1,7 @@
 #!/bin/bash
 ## commands (alias)
 ## - function command cli adapter
-## version 0.0.6 - enable alias expansion for standalone use
+## version 0.0.7 - use main as default command
 ##################################################
 list-available-commands() { { local function_name ; function_name="${1}" ; local filter_include ; filter_include="${2}" ; }
  echo available commands:
@@ -29,7 +29,7 @@ alias parse-command-args='
 alias commands='
  #test "${_command}" || { local _command ; _command="${1}" ; }
  #test "${_args}" || { local _args ; _args=${@:2} ; }
- { local _command ; _command="${1}" ; }
+ { local _command ; _command="${1:-main}" ; }
  { local _args ; _args=${@:2} ; }
  test ! "$( declare -f ${FUNCNAME}-${_command} )" && {
   {    
