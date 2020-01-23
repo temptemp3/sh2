@@ -7,10 +7,10 @@ just some bash scripts for log analysis and much more
 
 ```
 {
-  git clone https://github.com/temptemp3/sh2.git
+  test -d "sh2" || git clone git@github.com:temptemp3/sh2.git
   find sh2 -type f -name \*.sh | xargs chmod +x
-  echo "declare -x SH2=$( realpath sh2 )" >> commands
-  source commands
+  echo "declare -x SH2=$( realpath sh2 )" >> ~/.bashrc
+  source ~/.bashrc
 }
 ```
 
