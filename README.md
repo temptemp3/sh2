@@ -7,6 +7,14 @@ just some bash scripts for log analysis and much more
 
 ```
 {
+  command realpath --version &>/dev/null || {
+    case $( uname ) in
+      Darwin) {
+        brew install coreutil
+      } ;;
+      *) true ;;
+    esac
+  }
   test -d "sh2" || git clone https://github.com/temptemp3/sh2.git
   find sh2 -type f -name \*.sh | xargs chmod +x
   echo "declare -x SH2=$( realpath sh2 )" >> ~/.bashrc
