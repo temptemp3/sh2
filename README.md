@@ -52,6 +52,6 @@ USAGE
 
 ## changelog
 
-+ 1 Mar 2020 - use https in quickstart
++ 1 Mar 2020 - use https in quickstart, add coreutil install in case of new bourne mac
 + 23 Jan 2020 - use master branch in quickstart
 
