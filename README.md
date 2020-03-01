@@ -7,7 +7,7 @@ just some bash scripts for log analysis and much more
 
 ```
 {
-  test -d "sh2" || git clone git@github.com:temptemp3/sh2.git
+  test -d "sh2" || git clone https://github.com/temptemp3/sh2.git
   find sh2 -type f -name \*.sh | xargs chmod +x
   echo "declare -x SH2=$( realpath sh2 )" >> ~/.bashrc
   source ~/.bashrc
@@ -44,5 +44,6 @@ USAGE
 
 ## changelog
 
++ 1 Mar 2020 - use https in quickstart
 + 23 Jan 2020 - use master branch in quickstart
 
