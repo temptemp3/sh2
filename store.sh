@@ -1,11 +1,11 @@
 #!/bin/bash
 ## store
-## version 0.0.3 - use source instead of .
+## version 0.0.4 - store at home
 #################################################
 shopt -s expand_aliases
 alias init-store='
 {
-  test ! -f "$( basename ${0} .sh )-store" && {
+  test ! -f ~/$( basename ${0} .sh )-store && {
     touch ${_}
   } || {
     source ${_}
@@ -23,13 +23,18 @@ alias init-store='
   }
 }
 '
+alias init-store-silent='
+{
+  init-store
+} &>/dev/null
+'
 store-initialize() {
   store["run"]=0
   declare -p store &>/dev/null
 }
 store-persist() {
   store[run]=$(( store[run] + 1 ))
-  declare -p store | tee $( basename ${0} .sh )-store &>/dev/null
+  declare -p store | tee "${store_file}" &>/dev/null
 }
 store-set() { { local key ; key="${1}" ; local value ; value="${@:2}" ; }
   store[${key}]=${value}  
@@ -38,6 +43,8 @@ store-get() { { local key ; key="${1}" ; }
   echo "${store[${key}]}"
 }
 store() {
+  local store_file
+  store_file=~/$( basename ${0} .sh )-store
   commands
 }
 ##################################################
