@@ -24,13 +24,47 @@ just some bash scripts for log analysis and much more
 
 ## store
 
-+ requires cecho.sh
-+ may not be in main branch
++ use as persistent variable store
++ requires cecho.sh and aliases/commands.sh
+
+boilerplate
 
 ```
+. ${SH2}/aliases/commands.sh
+. ${SH2}/cecho.sh
 . ${SH2}/store.sh
-store set ...
-store persist
+main() {
+  init-store-silent 
+  store get some_key
+  store set some_key new_value
+  store persist
+}
+main
+```
+
+boilerplate (annotated)
+
+```
+. ${SH2}/aliases/commands.sh
+. ${SH2}/cecho.sh
+. ${SH2}/store.sh
+main() {
+  # make store available
+  init-store-silent 
+  # see also init-store
+  # store now available
+  # ... do some work
+  # recover stored value
+  store get some_key
+  # ...
+  # update stored value
+  store set some_key new_value
+  # create new stored value
+  store set some_other_key some_other_value
+  # persit store
+  store persist
+}
+main
 ```
 
 ## commands2
