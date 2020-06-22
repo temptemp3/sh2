@@ -1,5 +1,7 @@
 #!/bin/bash
 ## get-line
+## return lines in file matching pattern
+## version 0.0.1 - initial
 ##############################################
 . ${SH2}/attr.sh
 attr file
