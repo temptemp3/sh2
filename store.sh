@@ -1,7 +1,8 @@
 #!/bin/bash
 ## store
-## version 0.0.4 - store at home
+## version 0.0.5 - add incr subcommand
 #################################################
+. ${SH2}/aliases/commands.sh
 shopt -s expand_aliases
 alias init-store='
 {
@@ -41,6 +42,12 @@ store-set() { { local key ; key="${1}" ; local value ; value="${@:2}" ; }
 }
 store-get() { { local key ; key="${1}" ; }
   echo "${store[${key}]}"
+}
+store-incr() { { local key ; key="${1}" ; local value ; value="${@:2}" ; }
+  local -i new_value
+  new_value=$( store get ${key} )
+  let new_value+=value
+  store set ${key} ${new_value}
 }
 store() {
   local store_file
