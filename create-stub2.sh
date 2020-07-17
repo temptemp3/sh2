@@ -3,6 +3,10 @@
 ## - create program stub
 ## =standalone=
 ## version 0.1.2 - allow head and entry override
+## =compatability=
+## 4.2.46-34.43 - test working
+## 4.1.2-15.25 - tested not working
+## - failed to import bash function
 ##################################################
 set -e 			# exit on error
 shopt -s expand_aliases	# enable alias expansion
