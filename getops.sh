@@ -1,6 +1,6 @@
 #!/bin/bash
 ## getops
-## version 0.0.2 - using seq
+## version 0.0.3 - allow multiword shortops
 ##################################################
 on-shortops-case() {
  case ${1} in
@@ -24,7 +24,7 @@ on-shortops() {
  for i in $( seq $(( $( str_length ${1:1} ) - 1 )) )
  do
   #echo ${1:${i}:1} 1>&2
-  ${FUNCNAME}-case ${1:${i}:1} ${2}
+  ${FUNCNAME}-case ${1:${i}:1} ${@:2}
  done
 }
 #-------------------------------------------------
