@@ -1,18 +1,21 @@
 #!/bin/bash
 ## commands (alias)
 ## - function command cli adapter
-## version 0.0.8 - minimal
+## version 0.0.9 - add avialable commands
 ##################################################
+available-commands() { { local function_name ; function_name="${1}" ; local filter_include ; filter_include="${2}" ; }
+  declare -f \
+  | grep -e "^${function_name}" \
+  | cut "-f1" "-d " \
+  | grep -v -e "which" -e "for-each" -e "payload" -e "initialize" -e "main" \
+  | sed -e '1d'
+}
 list-available-commands() { { local function_name ; function_name="${1}" ; local filter_include ; filter_include="${2}" ; }
- echo available commands:
- declare -f |
-   grep -e "^${function_name}" |
-   cut "-f1" "-d " |
-   grep -v -e "which" -e "for-each" -e "payload" -e "initialize" |
-   sed -e "s/${function_name}-//" |
-   xargs -I {} echo "- {}" |
-   sed  "1d" |
-   grep -e "${filter_include}"
+  echo available commands:
+  available-commands ${@} \
+  | sed -e "s/${function_name}-//" \
+  | xargs -I {} echo "- {}" \
+  | grep -e "${filter_include}"
 }
 shopt -s expand_aliases
 alias commands='
@@ -32,5 +35,14 @@ alias commands='
  } || {
   ${FUNCNAME}-${_command} ${_args}
  }
+'
+alias run-commands-as-main='
+{
+  local command
+  for command in $( available-commands ${FUNCNAME/-main} )
+  do
+    ${command}
+  done
+}
 '
 ##################################################
