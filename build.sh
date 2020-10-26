@@ -1,9 +1,11 @@
 #!/bin/bash
 ## build
 ## - builds a copy of script with resolved . lines
-## version 0.0.4 - if output enabled obfuscate
+## version 0.0.5 - ignore error exit function
 ##################################################
 build() {
+  local -r regex_source_line='^\s*[.]\s\+'
+  local -r regex_error_exit_func_line='^_exit\s".{FUNCNAME}"\s".{LINENO}"$'
   local outfile
   outfile="${build}/$( basename ${0} .sh )"
   cecho green "building standalone ..."
@@ -27,7 +29,9 @@ build() {
   ################################################
   { # resolve source lines
     bash -vp ${0} true 2>&1 | 
-    grep -v -e '^\s*[.]\s\+' 
+    grep -v \
+      -e "${regex_source_line}" \
+      -e "${regex_error_exit_func_line}"
   } | tee ${outfile}.sh
   ################################################
   ## obfuscate output to prevent easy tampering
