@@ -1,36 +1,47 @@
 #!/bin/bash
 ## db
-## version 0.0.1 - initial
+## version 0.0.2 - refactor 
 ##################################################
 # requires sh2/aliases/commands
-db-mysql() {
-  local -x MYSQL_TEST_LOGIN_FILE
-  MYSQL_TEST_LOGIN_FILE=$( mktemp )-
-  template-mysql-defaults-extra-file ${FUNCNAME/_/} > ${MYSQL_TEST_LOGIN_FILE}
-  mysql --defaults-extra-file=${MYSQL_TEST_LOGIN_FILE} ${dbname}
-  cat ${MYSQL_TEST_LOGIN_FILE}
-  rm -v ${MYSQL_TEST_LOGIN_FILE} 1>&2
+shopt -s expand_aliases
+alias bind-variables='
+{
+  local MYSQL_TEST_LOGIN_FILE
 }
-db-mysqldump() {
-  local -x MYSQL_TEST_LOGIN_FILE
-  MYSQL_TEST_LOGIN_FILE=$( mktemp )-
-  template-mysql-defaults-extra-file ${FUNCNAME/_/} > ${MYSQL_TEST_LOGIN_FILE}
-  mysqldump --defaults-extra-file=${MYSQL_TEST_LOGIN_FILE} ${dbname}
-  cat ${MYSQL_TEST_LOGIN_FILE}
-  rm -v ${MYSQL_TEST_LOGIN_FILE} 1>&2
-}
-db() {
-  template-mysql-defaults-extra-file() { { local block_name ; block_name="${1}" ; }
-    cat << EOF
+'
+template-mysql-defaults-extra-file() { { local block_name ; block_name="${1}" ; }
+  cat << EOF
 [${block_name}]
 host = ${dbhost}
 port = 3306
 user = ${dbuser}
 password = ${dbpasswd}
 EOF
-  }
-  template() {
-    commands
+}
+template() {
+  commands
+}
+setup-db-defaults-extra-file() { { local block_name ; block_name="${1}" ; }
+  MYSQL_TEST_LOGIN_FILE=$( mktemp )-
+  touch ${MYSQL_TEST_LOGIN_FILE}
+  chmod 600 ${_}
+  template-mysql-defaults-extra-file ${block_name} > ${MYSQL_TEST_LOGIN_FILE}
+}
+cleanup-db-defaults-extra-file() {
+  rm ${MYSQL_TEST_LOGIN_FILE}
+}
+db-mysql() {
+  _ mysql
+}
+db-mysqldump() {
+  _ mysqldump
+}
+db() {
+  _() {
+    bind-variables
+    setup-db-defaults-extra-file ${1}
+    command ${1} --defaults-extra-file=${MYSQL_TEST_LOGIN_FILE} ${dbname}
+    cleanup-db-defaults-extra-file
   }
   commands
 }
