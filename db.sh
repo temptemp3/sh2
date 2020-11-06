@@ -1,6 +1,6 @@
 #!/bin/bash
 ## db
-## version 0.0.2 - refactor 
+## version 0.0.3 - fix leaves tmp files behind
 ##################################################
 # requires sh2/aliases/commands
 shopt -s expand_aliases
@@ -22,7 +22,7 @@ template() {
   commands
 }
 setup-db-defaults-extra-file() { { local block_name ; block_name="${1}" ; }
-  MYSQL_TEST_LOGIN_FILE=$( mktemp )-
+  MYSQL_TEST_LOGIN_FILE=$( mktemp )
   touch ${MYSQL_TEST_LOGIN_FILE}
   chmod 600 ${_}
   template-mysql-defaults-extra-file ${block_name} > ${MYSQL_TEST_LOGIN_FILE}
