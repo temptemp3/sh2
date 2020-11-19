@@ -1,6 +1,6 @@
 #!/bin/bash
 ## db
-## version 0.0.3 - fix leaves tmp files behind
+## version 0.0.4 - template declare condition
 ##################################################
 # requires sh2/aliases/commands
 shopt -s expand_aliases
@@ -18,8 +18,10 @@ user = ${dbuser}
 password = ${dbpasswd}
 EOF
 }
-template() {
-  commands
+declare -f template &>/dev/null || {
+  template() {
+    commands
+  }
 }
 setup-db-defaults-extra-file() { { local block_name ; block_name="${1}" ; }
   MYSQL_TEST_LOGIN_FILE=$( mktemp )
