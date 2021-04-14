@@ -2,6 +2,8 @@
 
 just some bash scripts for log analysis and much more
 
+* [quickstart](#quickstart)
+* [store](#store)
 
 ## quickstart
 
