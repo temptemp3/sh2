@@ -103,7 +103,7 @@ USAGE
 
 ## changelog
 
-* 14 Apr 2021 - update readme, add getops boilerplate
++ 14 Apr 2021 - update readme, add getops boilerplate
 + 29 May 2020 - update readme, add to store
 + 28 Mar 2020 - delete some older seldom used scripts
 +  1 Mar 2020 - use https in quickstart, add coreutil install in case of new bourne mac
