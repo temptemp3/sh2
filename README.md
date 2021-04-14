@@ -4,6 +4,7 @@ just some bash scripts for log analysis and much more
 
 * [quickstart](#quickstart)
 * [store](#store)
+* [getops](#store)
 
 ## quickstart
 
@@ -67,6 +68,20 @@ main() {
   store persist
 }
 main
+```
+
+## getopts
+
+* easy short/long option interface
+
+boilerplate
+
+```
+. ${SH2}/getops.sh
+on-shortops-case() { ... }
+main() {
+  getops "${@}"
+}
 ```
 
 ## commands2
