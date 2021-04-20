@@ -74,13 +74,39 @@ main
 
 * easy short/long option interface
 
-boilerplate
+### boilerplate
 
 ```
 . ${SH2}/getops.sh
 on-shortops-case() { ... }
 main() {
   getops "${@}"
+}
+```
+
+### add help option
+
+```
+. ${SH2}/getops.sh
+help() { 
+  cat << EOF
+WRITE ME
+EOF
+}
+on-shortops-case() {
+ case ${1} in
+  h) {
+   show_help="true"
+   echo 1
+  } ;;
+  *) {
+    true
+  } ;;
+ esac
+}
+main() {
+  getops "${@}" 
+  test ! "${show_help:-false}" = "true" || { help ; return ; }
 }
 ```
 
@@ -103,6 +129,7 @@ USAGE
 
 ## changelog
 
++ 20 Apr 2021 - update readme, add getops add help option example
 + 14 Apr 2021 - update readme, add getops boilerplate
 + 29 May 2020 - update readme, add to store
 + 28 Mar 2020 - delete some older seldom used scripts
