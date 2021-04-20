@@ -70,7 +70,7 @@ main() {
 main
 ```
 
-## getopts
+## getops
 
 * easy short/long option interface
 
