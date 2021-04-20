@@ -4,7 +4,7 @@ just some bash scripts for log analysis and much more
 
 * [quickstart](#quickstart)
 * [store](#store)
-* [getops](#store)
+* [getops](#getops)
 
 ## quickstart
 
