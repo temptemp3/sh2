@@ -1,6 +1,6 @@
 #!/bin/bash
 ## store
-## version 0.0.4 - store at home
+## version 0.1.0 - add list command
 #################################################
 shopt -s expand_aliases
 alias init-store='
@@ -41,6 +41,14 @@ store-set() { { local key ; key="${1}" ; local value ; value="${@:2}" ; }
 }
 store-get() { { local key ; key="${1}" ; }
   echo "${store[${key}]}"
+}
+store-list() {
+  local key
+  # shellcheck disable=SC2154
+  for key in "${!store[@]}"
+  do
+   echo "${key}: ${store[${key}]}"
+  done
 }
 store() {
   local store_file
